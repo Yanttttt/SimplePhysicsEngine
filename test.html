@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<head>
+    <title>v0.2</title>
+    <style>
+        body {
+            font-family: verdana;
+            font-size: 15px;
+        }
+        .button {
+            background-color: #5f5f5f;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+        .slider {
+            -webkit-appearance: none;
+            width: 80px;
+            height: 6px;
+            background: #d3d3d3;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity .2s;
+        }
+    </style>
+</head>
+
+<body>
+
+<button class="button" onclick="setupScene()">Restart</button>
+<button class="button" onclick="addBlock()">Add Block</button>
+Restitution <input type="range" min="0" max="10" value="10" id="restitutionSlider" class="slider">
+<br>
+<canvas id="myCanvas" style="border:2px solid"></canvas>
+
+<script type="module">
+    import {Vector2, VectorMath2} from "./sp2d/Vector2.js";
+
+    var canvas = document.getElementById("myCanvas");
+    var ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth - 20;
+    canvas.height = window.innerHeight - 100;
+
+    var div=2;
+    var scale=Math.min(canvas.width,canvas.height)/div;
+    var simWidth=canvas.width/scale;
+    var simHeight=canvas.height/scale;
+
+    function cx(pos)
+    {
+        return pos.x*scale;
+    }
+
+    function cy(pos)
+    {
+        return canvas.height-pos.y*scale;
+    }
+
+    
+    
+</script>
+</body>
+</html>
+
