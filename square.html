@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<head>
+    <title>Square</title>
+    <style>
+        body {
+            font-family: verdana;
+            font-size: 15px;
+        }
+
+        .button {
+            background-color: #5f5f5f;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+
+        .slider {
+            -webkit-appearance: none;
+            width: 80px;
+            height: 6px;
+            background: #d3d3d3;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity .2s;
+        }
+    </style>
+</head>
+
+<body>
+
+    <button class="button" onclick="setupScene()">Restart</button>
+    <button class="button" onclick="addBlock()">Add Block</button>
+    Restitution <input type="range" min="0" max="10" value="10" id="restitutionSlider" class="slider">
+    <br>
+    <canvas id="myCanvas" style="border:2px solid"></canvas>
+
+    <script>
+        var canvas = document.getElementById("myCanvas");
+        var ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth - 20;
+        canvas.height = window.innerHeight - 100;
+
+        var div = 10;
+        var scale = Math.min(canvas.width, canvas.height) / div;
+        var simWidth = canvas.width / scale;
+        var simHeight = canvas.height / scale;
+
+        function cx(pos) {
+            return pos.x * scale;
+        }
+
+        function cy(pos) {
+            return canvas.height - pos.y * scale;
+        }
+
+        class Vector2 {
+            constructor(x = 0, y = 0) {
+                this.x = x;
+                this.y = y;
+            }
+            add(v, s = 1.0) {
+                this.x += v.x * s;
+                this.y += v.y * s;
+                return this;
+            }
+            plus(v, s = 1.0) {
+                return new Vector2(this.x + s * v.x, this.y + s * v.y);
+            }
+            subtract(v, s = 1.0) {
+                return new Vector2(this.x - s * v.x, this.y - s * v.y);
+            }
+            times(s) {
+                return new Vector2(this.x * s, this.y * s);
+            }
+            dot(v) {
+                return this.x * v.x + this.y * v.y;
+            }
+            cross(v) {
+                return this.x * v.y - this.y * v.x;
+            }
+            perpendicular() {
+                return new Vector2(-this.y, this.x);
+                //90 degrees counter-clockwise
+            }
+            length() {
+                return Math.hypot(this.x, this.y);
+                //hypotenuse, sqrt(x^2+y^2)
+            }
+            clone() {
+                return new Vector2(this.x, this.y);
+            }
+        }
+
+        class Block {
+            constructor(size, mass, pos, vel, angle = 0, angularVelocity = 0) {
+                this.size = size;
+                this.mass = mass;
+                this.massInv = 1 / mass;
+                this.pos = pos;
+                this.vel = vel;
+                this.angle = angle;
+                this.angularVelocity = angularVelocity;
+                this.inertia = (1 / 6) * mass * (size * size);
+                this.inertiaInv = 1 / this.inertia;
+                this.corners = this.getCorners();
+            }
+            simulate(dt, gravity) {
+                this.vel.add(gravity, dt);
+                this.pos.add(this.vel, dt);
+                this.angle += this.angularVelocity * dt;
+                this.corners = this.getCorners();
+            }
+            getCorners() {
+                var half = this.size / 2;
+                var cosA = Math.cos(this.angle);
+                var sinA = Math.sin(this.angle);
+
+                return [
+                    new Vector2(this.pos.x + half * cosA - half * sinA, this.pos.y + half * sinA + half * cosA),
+                    new Vector2(this.pos.x - half * cosA - half * sinA, this.pos.y + half * sinA - half * cosA),
+                    new Vector2(this.pos.x - half * cosA + half * sinA, this.pos.y - half * sinA - half * cosA),
+                    new Vector2(this.pos.x + half * cosA + half * sinA, this.pos.y - half * sinA + half * cosA)
+                ];
+                //counter-clockwise
+            }
+
+            getAxes() {
+                var axes = [];
+                for (let i = 0; i < 4; i++) {
+                    let edge = this.corners[(i + 1) % 4].subtract(this.corners[i]);
+                    axes.push(edge.perpendicular().times(1 / edge.length()));
+                }
+                //axis vectors point inward
+                return axes;
+            }
+
+            isPointWithin(p) {
+                var axes = this.getAxes();
+                for (let axis of axes) {
+                    var minProj = Number.MAX_VALUE;
+                    var maxProj = -Number.MAX_VALUE;
+                    for (let corner of this.corners) {
+                        var proj = corner.dot(axis);
+                        minProj = Math.min(minProj, proj);
+                        maxProj = Math.max(maxProj, proj);
+                    }
+                    var projP = p.dot(axis);
+                    if (projP < minProj || projP > maxProj) return false;
+                }
+                return true;
+            }
+
+        }
+
+        // class collision
+        // {
+        //     constructor(block1,block2,normal,depth,contactPoint)
+        //     {
+        //         this.block1=block1;
+        //         this.block2=block2;
+        //         this.normal=normal;
+        //         this.depth=depth;
+        //         this.contactPoint=contactPoint;
+        //     }
+
+
+        // }
+
+        var physicsScene = {
+            gravity: new Vector2(0, -5),
+            dt: 1.0 / 60,
+            worldSize: new Vector2(simWidth, simHeight),
+            paused: true,
+            blocks: [],
+            collisions: [],
+            restitution: 1.0,
+            maxAngularVel: 10.0
+        };
+
+        function addBlock() {
+            var size = Math.random() * 0.2 + 0.1;
+            var mass = size * size;
+            var pos = new Vector2(Math.random() * physicsScene.worldSize.x, Math.random() * physicsScene.worldSize.y);
+            var vel = new Vector2(Math.random() * 2 - 1, Math.random() * 2 - 1);
+            var angularVelocity = (Math.random() - 0.5) * 2;
+            physicsScene.blocks.push(new Block(size, mass, pos, vel, 0, angularVelocity));
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#FF0000";
+
+            physicsScene.blocks.forEach(block => {
+                ctx.save();
+                ctx.translate(cx(block.pos), cy(block.pos));
+                ctx.rotate(block.angle);
+                ctx.fillRect(
+                    -scale * block.size / 2,
+                    -scale * block.size / 2,
+                    scale * block.size,
+                    scale * block.size
+                );
+                ctx.restore();
+            });
+        }
+
+        function SATCollision(a, b) {
+            var axes = a.getAxes().concat(b.getAxes());
+
+            var minA = Number.MAX_VALUE;
+            var maxA = -Number.MAX_VALUE;
+            var minB = Number.MAX_VALUE;
+            var maxB = -Number.MAX_VALUE;
+
+            var minOverlap = Number.MAX_VALUE;
+            //length that the proj vectors overlapping on each other
+            var normal = new Vector2();
+
+            for (let axis of axes) {
+                minA = Number.MAX_VALUE;
+                maxA = -Number.MAX_VALUE;
+                minB = Number.MAX_VALUE;
+                maxB = -Number.MAX_VALUE;
+
+                for (let j = 0; j < 4; j++) {
+                    var proj = a.corners[j].dot(axis);
+                    //projected vector of corner vector on the axis
+                    minA = Math.min(minA, proj);
+                    maxA = Math.max(maxA, proj);
+
+                    proj = b.corners[j].dot(axis);
+                    minB = Math.min(minB, proj);
+                    maxB = Math.max(maxB, proj);
+                }
+
+                let overlap = Math.min(maxA, maxB) - Math.max(minA, minB);
+                //console.log(overlap);
+
+                if (overlap < 0)
+                    return false;
+
+                if (overlap < minOverlap) {
+                    minOverlap = overlap;
+                    normal = axis;
+                }
+            }
+
+            var centerDiff = b.pos.subtract(a.pos);
+            if (centerDiff.dot(normal) < 0) {
+                normal = normal.times(-1);
+            } //make sure normal points a -> b
+
+            var minDist = Number.MAX_VALUE;
+            var contactPoint = new Vector2();
+
+            for (let corner of a.corners) {
+                let proj = corner.dot(normal);
+                if (proj < minDist) {
+                    minDist = proj;
+                    contactPoint = corner.clone();
+                    console.log(contactPoint);
+                }
+                console.log(proj);
+            }
+
+            for (let corner of a.corners) {
+                let proj = corner.dot(normal.times(-1));
+                if (proj < minDist) {
+                    minDist = proj;
+                    contactPoint = corner.clone();
+                    console.log(contactPoint);
+                }
+                console.log(proj);
+            }
+
+            //contactPoint=error;
+
+            physicsScene.collisions.push(
+                {
+                    block1: a,
+                    block2: b,
+                    normal: normal,
+                    depth: minOverlap,
+                    contactPoint: contactPoint
+                }
+            );
+            return true;
+        }
+
+        function handleWallCollision() {
+            for (let block of physicsScene.blocks) {
+                var halfSize = block.size / 2;
+                if (block.pos.x - halfSize < 0) {
+                    block.pos.x = halfSize;
+                    block.vel.x = -block.vel.x;
+                }
+                if (block.pos.x + halfSize > physicsScene.worldSize.x) {
+                    block.pos.x = physicsScene.worldSize.x - halfSize;
+                    block.vel.x = -block.vel.x;
+                }
+                if (block.pos.y - halfSize < 0) {
+                    block.pos.y = halfSize;
+                    block.vel.y = -block.vel.y;
+                }
+                if (block.pos.y + halfSize > physicsScene.worldSize.y) {
+                    block.pos.y = physicsScene.worldSize.y - halfSize;
+                    block.vel.y = -block.vel.y;
+                }
+            }
+        }
+
+        function handleBlockCollision(collision, restitution) {
+            var a = collision.block1;
+            var b = collision.block2;
+            var normal = collision.normal;
+            var depth = collision.depth;
+            var P = collision.contactPoint;
+
+            var r_ap = P.subtract(a.pos);
+            var r_bp = P.subtract(b.pos);
+
+            var v_a = a.vel.plus(r_ap.perpendicular(), a.angularVelocity);
+            var v_b = b.vel.plus(r_bp.perpendicular(), b.angularVelocity);
+
+            var v_rel = v_b.subtract(v_a);
+            var v_rel_n = v_rel.dot(normal);
+
+            if (v_rel_n > 0) return;
+
+            var r_ap_cross_n = r_ap.cross(normal);
+            var r_bp_cross_n = r_bp.cross(normal);
+
+            var denom = a.massInv + b.massInv +
+                (r_ap_cross_n * r_ap_cross_n) * a.inertiaInv +
+                (r_bp_cross_n * r_bp_cross_n) * b.inertiaInv;
+
+            var J = -(1 + restitution) * v_rel_n / denom;
+
+            var impulse = normal.times(J);
+
+            a.vel.add(impulse.times(-a.massInv));
+            b.vel.add(impulse.times(b.massInv));
+
+            a.angularVelocity += r_ap.cross(impulse) * a.inertiaInv;
+            b.angularVelocity -= r_bp.cross(impulse) * b.inertiaInv;
+
+            a.angularVelocity = Math.min(Math.max(a.angularVelocity, -physicsScene.maxAngularVel), physicsScene.maxAngularVel);
+            b.angularVelocity = Math.min(Math.max(b.angularVelocity, -physicsScene.maxAngularVel), physicsScene.maxAngularVel);
+
+            //avoid penetration
+            var factor = 1;
+            var corr = normal.times(depth * factor / (a.massInv + b.massInv));
+
+            a.pos.add(corr.times(-a.massInv));
+            b.pos.add(corr.times(b.massInv));
+        }
+
+
+        function simulate(dt) {
+
+            physicsScene.collisions = [];
+
+            for (let block of physicsScene.blocks) {
+                block.simulate(dt, physicsScene.gravity);
+            }
+
+            handleWallCollision();
+
+            for (let i = 0; i < physicsScene.blocks.length; i++) {
+                for (let j = 0; j < physicsScene.blocks.length; j++) {
+                    SATCollision(physicsScene.blocks[i], physicsScene.blocks[j]);
+                }
+            }
+
+            for (let collision of physicsScene.collisions) {
+                handleBlockCollision(
+                    collision,
+                    physicsScene.restitution,
+                );
+            }
+        }
+
+        function setupScene() {
+            physicsScene.blocks = [];
+            physicsScene.collisions = [];
+        }
+
+
+        function update() {
+            subStep = 10;
+            for (let i = 0; i < 1; i++)
+                simulate(physicsScene.dt / subStep);
+            draw();
+            requestAnimationFrame(update);
+        }
+
+        document.getElementById("restitutionSlider").oninput = function () {
+            physicsScene.restitution = this.value / 10.0;
+        };
+
+        update();
+    </script>
+</body>
+
+</html>
