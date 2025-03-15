@@ -6,8 +6,8 @@ import * as Collision from "./sp2d/Collision.js";
 
 Draw.init("myCanvas");
 PhysicsScene.init(undefined,new Vector2(0.0, 0));
-//setWallCollision();
-PhysicsScene.setWallCollision(1);
+setWallCollision();
+//PhysicsScene.setWallCollision(1);
 
 function addBlock() {
     var size = Math.random() * 0.2 + 0.1;
@@ -43,63 +43,63 @@ function setupScene() {
 }
 window.setupScene = setupScene;
 
-// function setWallCollision(restitution=0) {
-//     var simHeight=PhysicsScene.simHeight;
-//     var simWidth=PhysicsScene.simWidth;
-//     var top=new Entity.Rectangle(
-//         0.1,
-//         simWidth/2,
-//         restitution,
-//         Infinity,
-//         new Vector2(simWidth/2,simHeight*3/4),
-//         VectorMath2.zero(),
-//         0,
-//         0
-//     );
-//     top.setStatic();
-//     PhysicsScene.addEntity(top);
+function setWallCollision(restitution=0) {
+    var simHeight=PhysicsScene.simHeight;
+    var simWidth=PhysicsScene.simWidth;
+    var top=new Entity.Rectangle(
+        simWidth/2,
+        0.1,
+        restitution,
+        Infinity,
+        new Vector2(simWidth/2,simHeight*3/4),
+        VectorMath2.zero(),
+        0,
+        0
+    );
+    top.setStatic();
+    PhysicsScene.addEntity(top);
 
-//     var bottom=new Entity.Rectangle(
-//         0.1,
-//         simWidth/2,
-//         restitution,
-//         Infinity,
-//         new Vector2(simWidth/2,simHeight/4),
-//         VectorMath2.zero(),
-//         0,
-//         0
-//     );
-//     bottom.setStatic();
-//     PhysicsScene.addEntity(bottom);
+    var bottom=new Entity.Rectangle(
+        simWidth/2,
+        0.1,
+        restitution,
+        Infinity,
+        new Vector2(simWidth/2,simHeight/4),
+        VectorMath2.zero(),
+        0,
+        0
+    );
+    bottom.setStatic();
+    PhysicsScene.addEntity(bottom);
 
-//     var left=new Entity.Rectangle(
-//         simHeight/2,
-//         0.1,
-//         restitution,
-//         Infinity,
-//         new Vector2(simWidth/4,simHeight/2),
-//         VectorMath2.zero(),
-//         0,
-//         0
-//     );
-//     left.setStatic();
-//     PhysicsScene.addEntity(left);
+    var left=new Entity.Rectangle(
+        0.1,
+        simHeight/2,
+        restitution,
+        Infinity,
+        new Vector2(simWidth/4,simHeight/2),
+        VectorMath2.zero(),
+        0,
+        0
+    );
+    left.setStatic();
+    PhysicsScene.addEntity(left);
 
-//     var right=new Entity.Rectangle(
-//         simHeight/2,
-//         0.1,
-//         restitution,
-//         Infinity,
-//         new Vector2(simWidth*3/4,simHeight/2),
-//         VectorMath2.zero(),
-//         0,
-//         0
-//     );
-//     right.setStatic();
-//     PhysicsScene.addEntity(right);
+    var right=new Entity.Rectangle(
+        0.1,
+        simHeight/2,
+        restitution,
+        Infinity,
+        new Vector2(simWidth*3/4,simHeight/2),
+        VectorMath2.zero(),
+        0,
+        0
+    );
+    right.setStatic();
+    PhysicsScene.addEntity(right);
 
-//     console.log(top.getVertices());
-// }
+    console.log(top.getVertices());
+}
 
 document.getElementById("restitutionSlider").oninput = function () {
     for(let i=0;i<PhysicsScene.entities.length;i++)

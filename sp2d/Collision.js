@@ -396,7 +396,8 @@ export function detectRectangles(b1, b2) {
     if (dir.dot(normal) < 0) normal = normal.times(-1);
 
     var contactPoints1=[]; 
-    var contactPoints2=[]; 
+    var contactPoints2=[];
+    var contactPointA,contactPointB;
     var contactPoint=b1.pos.clone();
 
     for (let v of b1.vertices) {
@@ -436,11 +437,59 @@ export function detectRectangles(b1, b2) {
     }
     else
     {
-        for(let c of contactPoints1.concat(contactPoints2))
+        console.log(contactPoints1.length,contactPoints2.length);
+        
+        var min1 = Number.MAX_VALUE;
+        var min1v;
+        var max1 = -Number.MAX_VALUE;
+        var max1v;
+        for(let c of contactPoints1)
         {
-            contactPoint.addEqual(c);
-            Draw.drawCircle(contactPoint,0.01, "#0000FF");
+            let proj = c.dot(normal.perpendicular());
+            if(proj<min1)
+            {
+                min1=proj;
+                min1v=c;
+            }
+            if(proj>max1)
+            {
+                max1=proj;
+                max1v=c;
+            }
         }
+
+        var min2 = Number.MAX_VALUE;
+        var min2v;
+        var max2 = -Number.MAX_VALUE;
+        var max2v;
+        for(let c of contactPoints1)
+        {
+            let proj = c.dot(normal.perpendicular());
+            if(proj<min2)
+            {
+                min2=proj;
+                min2v=c;
+            }
+            if(proj>max2)
+            {
+                max2=proj;
+                max2v=c;
+            }
+        }
+
+        if(max2-min1<max1-min2)
+        {
+            contactPoint=VectorMath2.add(max2v,min1v).times(1/2);
+            Draw.drawCircle(max2v,0.01, "#0000FF");
+            Draw.drawCircle(min1v,0.01, "#0000FF");
+        }
+        else
+        {
+            contactPoint=VectorMath2.add(max1v,min2v).times(1/2);
+            Draw.drawCircle(max1v,0.01, "#0000FF");
+            Draw.drawCircle(min2v,0.01, "#0000FF");
+        }
+
         contactPoint.timesEqual(1/(contactPoints1.length+contactPoints2.length));
     }
     //Average contact point

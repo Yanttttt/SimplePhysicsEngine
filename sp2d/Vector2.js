@@ -77,7 +77,7 @@ class Vector2 {
         if (len == 0) {
             return new Vector2(0, 0);
         }
-        return this.times(1 / len);
+        return this.times(1 / len).clone();
     }
     normaliseEqual() {
         let len = this.length();
@@ -99,6 +99,13 @@ class Vector2 {
 
 // "const" constructs A namespace
 const VectorMath2 = {
+    add: (
+        /** @type {Vector2} */ 
+        v1, 
+        /** @type {Vector2} */ 
+        v2
+    ) =>
+        new Vector2(v1.x + v2.x, v1.y + v2.y),
     subtract: (
         /** @type {Vector2} */ 
         v1, 
