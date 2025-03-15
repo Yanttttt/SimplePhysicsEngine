@@ -30,6 +30,10 @@ export class Collision
         {
             this.resolveRectangles(corrFactor);
         }
+        if(this.entity1.type==="Circle" && this.entity2.type==="Rectangle")
+        {
+            this.resolveCircleRectangle(corrFactor);
+        }
     }
 
     resolveRectangles(corrFactor=0.8)
@@ -38,7 +42,8 @@ export class Collision
         var e2 = this.entity2;
         var normal = this.normal;
         var depth = this.depth;
-        //var P = collision.contactPoint;
+
+        // var P = collision.contactPoint;
 
         // var r_ap = P.subtract(a.pos);
         // var r_bp = P.subtract(b.pos);
@@ -118,7 +123,68 @@ export class Collision
             e1.pos.addEqual(normal, -2*corr);
             e1.vel.addEqual(normal,-v1*e);
             return;
+        }//1000 lines achieved
+
+        e1.pos.addEqual(normal, -corr);
+        e2.pos.addEqual(normal, corr);
+        
+        var v1f=(m1*v1+m2*(2*v2-v1))*e/(m1+m2);
+        var v2f=(m2*v2+m1*(2*v1-v2))*e/(m1+m2);
+
+        if(!v1f) v1f=0;
+        if(!v2f) v2f=0;
+
+        console.log(v1f,v2f);
+
+        //error;
+
+        e1.vel.addEqual(normal,v1f-v1);
+        e2.vel.addEqual(normal,v2f-v2);
+    }
+
+    resolveCircleRectangle(corrFactor=0.8)
+    {
+        var e1=this.entity1;
+        var e2=this.entity2;
+
+        var normal=this.normal;
+        var depth=this.depth;
+
+        if(e1.mass===Infinity && e2.mass===Infinity)
+        {
+            return;
+        }// 2 static entities
+
+        if(VectorMath2.subtract(e2.vel,e1.vel).dot(normal)>1e-5)// separating
+        {
+            return;
         }
+
+        console.log("collision resolving!")
+        console.log("collison is ", this);
+        
+        var e=Math.min(e1.resistitution,e2.resistitution);
+        console.log(e);
+
+        var v1=e1.vel.dot(normal);
+        var v2=e2.vel.dot(normal);
+
+        var m1=e1.mass;
+        var m2=e2.mass;
+
+        var corr = depth*corrFactor;
+        console.log(corr);
+
+        if(e1.mass==Infinity) {
+            e2.pos.addEqual(normal, 2*corr);
+            e2.vel.addEqual(normal,-v2*e);
+            return;
+        }
+        else if(e2.mass===Infinity) {
+            e1.pos.addEqual(normal, -2*corr);
+            e1.vel.addEqual(normal,-v1*e);
+            return;
+        }//1000 lines achieved
 
         e1.pos.addEqual(normal, -corr);
         e2.pos.addEqual(normal, corr);
@@ -145,21 +211,21 @@ export class Collision
         var normal=this.normal;
         var depth=this.depth;
 
-        var e=Math.min(e1.restitution,e2.restitution);
-
         if(e1.mass===Infinity && e2.mass===Infinity)
         {
             return;
         }// 2 static entities
 
-        if(VectorMath2.subtract(e2.vel,e1.vel).dot(normal)>0)// separating
+        if(VectorMath2.subtract(e2.vel,e1.vel).dot(normal)>1e-5)// separating
         {
             return;
         }
 
-        var corr = depth*corrFactor;
-        e1.pos.add(normal, -corr);
-        e2.pos.add(normal, corr);
+        console.log("collision resolving!")
+        console.log("collison is ", this);
+        
+        var e=Math.min(e1.resistitution,e2.resistitution);
+        console.log(e);
 
         var v1=e1.vel.dot(normal);
         var v2=e2.vel.dot(normal);
@@ -167,11 +233,55 @@ export class Collision
         var m1=e1.mass;
         var m2=e2.mass;
 
+        var corr = depth*corrFactor;
+        console.log(corr);
+
+        if(e1.mass==Infinity) {
+            e2.pos.addEqual(normal, 2*corr);
+            e2.vel.addEqual(normal,-v2*e);
+            return;
+        }
+        else if(e2.mass===Infinity) {
+            e1.pos.addEqual(normal, -2*corr);
+            e1.vel.addEqual(normal,-v1*e);
+            return;
+        }//1000 lines achieved
+
+        e1.pos.addEqual(normal, -corr);
+        e2.pos.addEqual(normal, corr);
+        
         var v1f=(m1*v1+m2*(2*v2-v1))*e/(m1+m2);
         var v2f=(m2*v2+m1*(2*v1-v2))*e/(m1+m2);
 
-        e1.vel.add(normal,v1f-v1);
-        e2.vel.add(normal,v2f-v2);
+        if(!v1f) v1f=0;
+        if(!v2f) v2f=0;
+
+        console.log(v1f,v2f);
+
+        //error;
+
+        e1.vel.addEqual(normal,v1f-v1);
+        e2.vel.addEqual(normal,v2f-v2);
+    }
+}
+
+export function detect(entity1,entity2)
+{
+    if(entity1.type==="Circle" && entity2.type==="Circle")
+    {
+        return detectCircles(entity1,entity2);
+    }
+    if(entity1.type==="Rectangle" && entity2.type==="Rectangle")
+    {
+        return detectRectangles(entity1,entity2);
+    }
+    if((entity1.type==="Circle" && entity2.type==="Rectangle"))
+    {
+        return detectCircleRectangle(entity1,entity2);
+    }
+    if(entity1.type==="Rectangle" && entity2.type==="Circle")
+    {
+        return detectCircleRectangle(entity2,entity1);
     }
 }
 
@@ -196,6 +306,92 @@ export function detectCircles(c1, c2)
     }
 }
 
+/**
+ * @param {Entity.Circle} c
+ * @param {Entity.Rectangle} r
+ */
+export function detectCircleRectangle(c,r)
+{
+    var normal = VectorMath2.zero();
+    var depth = Number.MAX_VALUE;
+    
+    var axis=VectorMath2.zero()
+    var overlap=0;
+
+    for(let i=0;i<4;i++)
+    {
+        let va=r.vertices[i];
+        let vb=r.vertices[(i+1)%4];
+
+        let edge=VectorMath2.subtract(vb,va);
+        axis=edge.perpendicular().normalise();
+
+        var projA=projectVertices(r,axis);
+        var projB=projectCircle(c,axis);
+
+        if(projA.min>=projB.max || projB.min>=projA.max)
+        {
+            return null;
+        }
+
+        overlap=Math.min(
+            projA.max-projB.min,
+            projB.max-projA.min
+        );
+
+        if(overlap<depth)
+        {
+            depth=overlap;
+            normal=axis;
+        }
+    }
+
+    var minDist=Number.MAX_VALUE;
+    var nearest=VectorMath2.zero();
+
+    for(let i=0;i<4;i++)
+    {
+        let v=r.vertices[i];
+        let dist=VectorMath2.distance(c.pos,v);
+
+        if(dist<minDist)
+        {
+            minDist=dist;
+            nearest=v;
+        }
+    }// find the nearest point on the rectangle
+
+    axis=VectorMath2.subtract(nearest,c.pos).normalise();
+    projA=projectVertices(r,axis);
+    projB=projectCircle(c,axis);
+
+    if(projA.min>=projB.max || projB.min>=projA.max)
+    {
+        return null;
+    }
+
+    overlap=Math.min(
+        projA.max-projB.min,
+        projB.max-projA.min
+    );
+
+    if(overlap<depth)
+    {
+        depth=overlap;
+        normal=axis;
+    }
+
+    var dir=VectorMath2.subtract(c.pos,r.pos);
+    if(dir.dot(normal)<0) normal=normal.times(-1);
+
+    return new Collision(
+        c,
+        r,
+        normal,
+        depth,
+        null
+    );
+}
 
 /**
  * @param {Entity.Rectangle} b1
@@ -230,6 +426,8 @@ export function detectRectangles(b1, b2)
 
         let edge=VectorMath2.subtract(vb,va);
         let axis=edge.perpendicular().normalise();
+        // Vertices go around the centre counter-clockwisely.
+        // So axis points inward.
 
         var projA=projectVertices(b1,axis);
         var projB=projectVertices(b2,axis);
@@ -237,6 +435,7 @@ export function detectRectangles(b1, b2)
         if (!projA || !projB)
         {
             console.log("null proj vector!");
+            return null;
         }
 
         if(projA.min>=projB.max || projB.min>=projA.max)
@@ -255,6 +454,12 @@ export function detectRectangles(b1, b2)
             normal=axis;
         }
     }
+
+    // Based on Seperating Axis Theorem
+    // Only work for convex shapes
+    // I will put it as a linear time algorithm
+    // Since it only depends on the number of edges
+    // In O(n^2) time
 
     for(let i=0;i<4;i++)
     {
@@ -324,18 +529,6 @@ export function detectRectangles(b1, b2)
     );
 }
 
-export function detect(entity1,entity2)
-{
-    if(entity1.type==="Circle" && entity2.type==="Circle")
-    {
-        return detectCircles(entity1,entity2);
-    }
-    else if(entity1.type==="Rectangle" && entity2.type==="Rectangle")
-    {
-        return detectRectangles(entity1,entity2);
-    }
-}
-
 /**
  * @param {Entity.Rectangle} b
  * @param {Vector2} axis
@@ -351,4 +544,19 @@ function projectVertices(b, axis)
         max=Math.max(max,proj);
     }
     return {min:min,max:max};
+}
+
+/**
+ * @param {Entity.Circle} c 
+ * @param {Vector2} axis 
+ */
+function projectCircle(c, axis)
+{
+    var p1=c.pos.add(axis,c.radius);
+    var p2=c.pos.add(axis,-c.radius);
+
+    var res1=VectorMath2.dot(p1,axis);
+    var res2=VectorMath2.dot(p2,axis);
+
+    return {min:Math.min(res1,res2),max:Math.max(res1,res2)};
 }

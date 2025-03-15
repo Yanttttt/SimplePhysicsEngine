@@ -41,6 +41,9 @@ export function init(worldSize_ = null, gravity_ = new Vector2(0.0, -9.8), maxAn
 export function addEntity(entity) {
     entity.id = entities.length;
     entities.push(entity);
+    return entity.id; 
+    // Passing by reference, id has been changed. 
+    // But it may make some convenience.
 }
 
 export function addCollision(collision) {
@@ -125,6 +128,7 @@ export function setWallCollision(resistitution=0) {
 export function simulate(substep=1.0) {
     if (paused) return;
 
+    // substep indicates how many times we simulate in 1 frame.
     for(let k=0;k<substep;k++)
     {
         for (let i = 0; i < entities.length; i++) {

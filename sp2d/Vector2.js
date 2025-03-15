@@ -127,6 +127,13 @@ const VectorMath2 = {
         v2
     ) =>
         v1.x * v2.y - v1.y * v2.x,
+    distance: (
+        /** @type {Vector2} */ 
+        v1, 
+        /** @type {Vector2} */ 
+        v2
+    ) =>
+        Math.hypot(v1.x-v2.x, v1.y-v2.y),
     zero: () =>
         new Vector2(0, 0),
 };
