@@ -66,18 +66,19 @@ export function setDt(d) {
     dt = d;
 }
 
-export function setWallCollision(resistitution=0) {
+export function setWallCollision(restitution=0) {
     var thickness=0.5;
     var top=new Entity.Rectangle(
         simWidth,
         thickness,
-        resistitution,
+        restitution,
         Infinity,
         //new Vector2(simWidth/2,simHeight+thickness/2),
         new Vector2(simWidth/2,simHeight),
         VectorMath2.zero(),
         0,
-        0
+        0,
+        "#4F4F4F"
     );
     top.setStatic();
     addEntity(top);
@@ -85,13 +86,14 @@ export function setWallCollision(resistitution=0) {
     var bottom=new Entity.Rectangle(
         simWidth,
         thickness,
-        resistitution,
+        restitution,
         Infinity,
         //new Vector2(simWidth/2,-thickness/2),
         new Vector2(simWidth/2,0),
         VectorMath2.zero(),
         0,
-        0
+        0,
+        "#4F4F4F"
     );
     bottom.setStatic();
     addEntity(bottom);
@@ -99,13 +101,14 @@ export function setWallCollision(resistitution=0) {
     var left=new Entity.Rectangle(
         thickness,
         simHeight,
-        resistitution,
+        restitution,
         Infinity,
         //new Vector2(-thickness/2,simHeight/2),
         new Vector2(0,simHeight/2),
         VectorMath2.zero(),
         0,
-        0
+        0,
+        "#4F4F4F"
     );
     left.setStatic();
     addEntity(left);
@@ -113,19 +116,20 @@ export function setWallCollision(resistitution=0) {
     var right=new Entity.Rectangle(
         thickness,
         simHeight,
-        resistitution,
+        restitution,
         Infinity,
         new Vector2(simWidth,simHeight/2),
         // new Vector2(simWidth+thickness/2,simHeight/2),
         VectorMath2.zero(),
         0,
-        0
+        0,
+        "#4F4F4F"
     );
     right.setStatic();
     addEntity(right);
 }
 
-export function simulate(substep=1.0) {
+export function simulate(substep=1) {
     if (paused) return;
 
     // substep indicates how many times we simulate in 1 frame.

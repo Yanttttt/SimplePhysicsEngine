@@ -25,7 +25,7 @@ function addBlock() {
 window.addBlock = addBlock;
 
 function addBall() {
-    var size = Math.random() * 0.2 + 0.1;
+    var size = (Math.random() * 0.2 + 0.1)/1.7;
     var pos = new Vector2(Math.random() * PhysicsScene.worldSize.x, Math.random() * PhysicsScene.worldSize.y);
     var vel = new Vector2(Math.random() * 2 - 1, Math.random() * 2 - 1);
 
@@ -37,19 +37,19 @@ function addBall() {
 window.addBall = addBall;
 
 function setupScene() {
-    PhysicsScene.init(undefined,new Vector2(0.0, 0));
+    PhysicsScene.init(undefined,new Vector2(0.0, -9.8));
     //setWallCollision();
     PhysicsScene.setWallCollision(1);
 }
 window.setupScene = setupScene;
 
-// function setWallCollision(resistitution=0) {
+// function setWallCollision(restitution=0) {
 //     var simHeight=PhysicsScene.simHeight;
 //     var simWidth=PhysicsScene.simWidth;
 //     var top=new Entity.Rectangle(
 //         0.1,
 //         simWidth/2,
-//         resistitution,
+//         restitution,
 //         Infinity,
 //         new Vector2(simWidth/2,simHeight*3/4),
 //         VectorMath2.zero(),
@@ -62,7 +62,7 @@ window.setupScene = setupScene;
 //     var bottom=new Entity.Rectangle(
 //         0.1,
 //         simWidth/2,
-//         resistitution,
+//         restitution,
 //         Infinity,
 //         new Vector2(simWidth/2,simHeight/4),
 //         VectorMath2.zero(),
@@ -75,7 +75,7 @@ window.setupScene = setupScene;
 //     var left=new Entity.Rectangle(
 //         simHeight/2,
 //         0.1,
-//         resistitution,
+//         restitution,
 //         Infinity,
 //         new Vector2(simWidth/4,simHeight/2),
 //         VectorMath2.zero(),
@@ -88,7 +88,7 @@ window.setupScene = setupScene;
 //     var right=new Entity.Rectangle(
 //         simHeight/2,
 //         0.1,
-//         resistitution,
+//         restitution,
 //         Infinity,
 //         new Vector2(simWidth*3/4,simHeight/2),
 //         VectorMath2.zero(),
@@ -104,7 +104,7 @@ window.setupScene = setupScene;
 document.getElementById("restitutionSlider").oninput = function () {
     for(let i=0;i<PhysicsScene.entities.length;i++)
     {
-        PhysicsScene.entities[i].resistitution = this.value / 10.0;
+        PhysicsScene.entities[i].restitution = this.value / 10.0;
     }
 };
 
@@ -122,6 +122,10 @@ function updateFrame() {
                 Draw.drawCircle(i,0.01, "#FF0000");
             }
         }
+    }
+    for(let c of PhysicsScene.collisions)
+    {
+        Draw.drawCircle(c.contactPoint,0.01, "#FFFF00");
     }
     requestAnimationFrame(updateFrame); //recursive call
 }

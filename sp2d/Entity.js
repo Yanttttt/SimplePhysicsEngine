@@ -4,7 +4,7 @@ export class Rectangle {
     constructor(
         width,
         length,
-        resistitution = 0,
+        restitution = 0,
         mass = 0,
         pos = VectorMath2.zero(),
         vel = VectorMath2.zero(),
@@ -18,7 +18,7 @@ export class Rectangle {
         this.length = length;
         this.width = width;
 
-        this.resistitution = resistitution;
+        this.restitution = restitution;
         
         this.mass = mass;
         if(mass === undefined || mass === 0)
@@ -52,6 +52,7 @@ export class Rectangle {
         // console.log(gravity,dt);
         // console.log(this.width,this.length);
         this.vel.addEqual(gravity,dt);
+        if(this.mass===Infinity) this.vel=VectorMath2.zero();
         this.pos.addEqual(this.vel,dt);
         this.angle += this.angularVel * dt;
         this.vertices = this.getVertices();
@@ -90,7 +91,7 @@ export class Rectangle {
 export class Circle {
     constructor(
         radius, 
-        resistitution = 1, 
+        restitution = 1, 
         mass=null,
         pos = VectorMath2.zero(),
         vel = VectorMath2.zero(),
@@ -98,7 +99,7 @@ export class Circle {
     ) {
         this.id=null;
         this.radius = radius
-        this.resistitution = resistitution;
+        this.restitution = restitution;
         if (mass == null)
             this.mass = Math.PI * radius ** 2;
         this.massInv = 1 / mass;

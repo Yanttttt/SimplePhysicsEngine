@@ -1,5 +1,6 @@
 import {Vector2, VectorMath2} from "./Vector2.js";
 import * as Entity from "./Entity.js";
+import * as PhysicsScene from "./PhysicsScene.js"
 
 export class Collision
 {
@@ -38,108 +39,61 @@ export class Collision
 
     resolveRectangles(corrFactor=0.8)
     {
-        var e1 = this.entity1;
-        var e2 = this.entity2;
+        var a = this.entity1;
+        var b = this.entity2;
         var normal = this.normal;
         var depth = this.depth;
+        var P = this.contactPoint;
+        
+        var e=Math.min(a.restitution,b.restitution);
 
-        // var P = collision.contactPoint;
-
-        // var r_ap = P.subtract(a.pos);
-        // var r_bp = P.subtract(b.pos);
-
-        // var v_a = a.vel.plus(r_ap.perpendicular(), a.angularVelocity);
-        // var v_b = b.vel.plus(r_bp.perpendicular(), b.angularVelocity);
-
-        // var v_rel = v_b.subtract(v_a);
-        // var v_rel_n = v_rel.dot(normal);
-
-        // if (v_rel_n > 0) return;
-
-        // var r_ap_cross_n = r_ap.cross(normal);
-        // var r_bp_cross_n = r_bp.cross(normal);
-
-        // var denom = a.massInv + b.massInv +
-        //     (r_ap_cross_n * r_ap_cross_n) * a.inertiaInv +
-        //     (r_bp_cross_n * r_bp_cross_n) * b.inertiaInv;
-
-        // var J = -(1 + restitution) * v_rel_n / denom;
-
-        // var impulse = normal.times(J);
-
-        // a.vel.add(impulse.times(-a.massInv));
-        // b.vel.add(impulse.times(b.massInv));
-
-        // a.angularVelocity += r_ap.cross(impulse) * a.inertiaInv;
-        // b.angularVelocity -= r_bp.cross(impulse) * b.inertiaInv;
-
-        // a.angularVelocity = Math.min(
-        //     Math.max(a.angularVelocity, -physicsScene.maxAngularVel),
-        //     physicsScene.maxAngularVel
-        // );
-        // b.angularVelocity = Math.min(
-        //     Math.max(b.angularVelocity, -physicsScene.maxAngularVel),
-        //     physicsScene.maxAngularVel
-        // );
-
-        // //avoid penetration
-        // var factor = 1;
-        // var corr = normal.times(depth * factor / (a.massInv + b.massInv));
-
-        // a.pos.add(corr.times(-a.massInv));
-        // b.pos.add(corr.times(b.massInv));
-
-        if(e1.mass===Infinity && e2.mass===Infinity)
+        if(a.mass===Infinity && b.mass===Infinity)
         {
             return;
         }// 2 static entities
+        //console.log(this.contactPoint);
 
-        if(VectorMath2.subtract(e2.vel,e1.vel).dot(normal)>1e-5)// separating
-        {
-            return;
-        }
+        var r_ap = P.subtract(a.pos);
+        var r_bp = P.subtract(b.pos);
 
-        console.log("collision resolving!")
-        console.log("collison is ", this);
+        var v_a = a.vel.add(r_ap.perpendicular(), a.angularVelocity);
+        var v_b = b.vel.add(r_bp.perpendicular(), b.angularVelocity);
+
+        var v_rel = v_b.subtract(v_a);
+        var v_rel_n = v_rel.dot(normal);
         
-        var e=Math.min(e1.resistitution,e2.resistitution);
-        console.log(e);
-
-        var v1=e1.vel.dot(normal);
-        var v2=e2.vel.dot(normal);
-
-        var m1=e1.mass;
-        var m2=e2.mass;
-
-        var corr = depth*corrFactor;
-        console.log(corr);
-
-        if(e1.mass==Infinity) {
-            e2.pos.addEqual(normal, 2*corr);
-            e2.vel.addEqual(normal,-v2*e);
-            return;
-        }
-        else if(e2.mass===Infinity) {
-            e1.pos.addEqual(normal, -2*corr);
-            e1.vel.addEqual(normal,-v1*e);
-            return;
-        }//1000 lines achieved
-
-        e1.pos.addEqual(normal, -corr);
-        e2.pos.addEqual(normal, corr);
+        var r_ap_cross_n = r_ap.cross(normal);
+        var r_bp_cross_n = r_bp.cross(normal);
         
-        var v1f=(m1*v1+m2*(2*v2-v1))*e/(m1+m2);
-        var v2f=(m2*v2+m1*(2*v1-v2))*e/(m1+m2);
+        var denom = a.massInv + b.massInv +
+            (r_ap_cross_n * r_ap_cross_n) * a.inertiaInv +
+            (r_bp_cross_n * r_bp_cross_n) * b.inertiaInv;
 
-        if(!v1f) v1f=0;
-        if(!v2f) v2f=0;
+        var J = -(1 + e) * v_rel_n / denom;
+        
+        var impulse = normal.times(J);
+        
+        a.vel.addEqual(impulse.times(-a.massInv));
+        b.vel.addEqual(impulse.times(b.massInv));
+        
+        a.angularVelocity += r_ap.cross(impulse) * a.inertiaInv;
+        b.angularVelocity -= r_bp.cross(impulse) * b.inertiaInv;
+        
+        a.angularVelocity = Math.min(
+            Math.max(a.angularVelocity, -PhysicsScene.maxAngularVel),
+            PhysicsScene.maxAngularVel
+        );
+        b.angularVelocity = Math.min(
+            Math.max(b.angularVelocity, -PhysicsScene.maxAngularVel),
+            PhysicsScene.maxAngularVel
+        );
+        
+        //avoid penetration
+        
+        var corr = normal.times(depth * corrFactor / (a.massInv + b.massInv));
 
-        console.log(v1f,v2f);
-
-        //error;
-
-        e1.vel.addEqual(normal,v1f-v1);
-        e2.vel.addEqual(normal,v2f-v2);
+        a.pos.addEqual(corr.times(-a.massInv));
+        b.pos.addEqual(corr.times(b.massInv));
     }
 
     resolveCircleRectangle(corrFactor=0.8)
@@ -155,15 +109,12 @@ export class Collision
             return;
         }// 2 static entities
 
-        if(VectorMath2.subtract(e2.vel,e1.vel).dot(normal)>1e-5)// separating
-        {
-            return;
-        }
-
-        console.log("collision resolving!")
-        console.log("collison is ", this);
+        // if(VectorMath2.subtract(e2.vel,e1.vel).dot(normal)>1e-5)// separating
+        // {
+        //     return;
+        // }
         
-        var e=Math.min(e1.resistitution,e2.resistitution);
+        var e=Math.min(e1.restitution,e2.restitution);
         console.log(e);
 
         var v1=e1.vel.dot(normal);
@@ -177,7 +128,7 @@ export class Collision
 
         if(e1.mass==Infinity) {
             e2.pos.addEqual(normal, 2*corr);
-            e2.vel.addEqual(normal,-v2*e);
+            e2.vel.addEqual(normal,v2*e);
             return;
         }
         else if(e2.mass===Infinity) {
@@ -216,15 +167,14 @@ export class Collision
             return;
         }// 2 static entities
 
-        if(VectorMath2.subtract(e2.vel,e1.vel).dot(normal)>1e-5)// separating
-        {
-            return;
-        }
-
-        console.log("collision resolving!")
-        console.log("collison is ", this);
         
-        var e=Math.min(e1.resistitution,e2.resistitution);
+
+        // if(VectorMath2.subtract(e2.vel,e1.vel).dot(normal)>0)// separating
+        // {
+        //     return;
+        // }
+        
+        var e=Math.min(e1.restitution,e2.restitution);
         console.log(e);
 
         var v1=e1.vel.dot(normal);
@@ -238,7 +188,7 @@ export class Collision
 
         if(e1.mass==Infinity) {
             e2.pos.addEqual(normal, 2*corr);
-            e2.vel.addEqual(normal,-v2*e);
+            e2.vel.addEqual(normal,v2*e);
             return;
         }
         else if(e2.mass===Infinity) {
@@ -312,6 +262,7 @@ export function detectCircles(c1, c2)
  */
 export function detectCircleRectangle(c,r)
 {
+
     var normal = VectorMath2.zero();
     var depth = Number.MAX_VALUE;
     
@@ -359,7 +310,8 @@ export function detectCircleRectangle(c,r)
             minDist=dist;
             nearest=v;
         }
-    }// find the nearest point on the rectangle
+    }// find the nearest point on the rectangle.
+    //That distance vector is actually another axis to detect.
 
     axis=VectorMath2.subtract(nearest,c.pos).normalise();
     projA=projectVertices(r,axis);
@@ -381,8 +333,11 @@ export function detectCircleRectangle(c,r)
         normal=axis;
     }
 
-    var dir=VectorMath2.subtract(c.pos,r.pos);
+    var dir=VectorMath2.subtract(r.pos,c.pos);
     if(dir.dot(normal)<0) normal=normal.times(-1);
+
+    console.log("Circle hits rectangle!",normal);
+    //error;
 
     return new Collision(
         c,
@@ -520,12 +475,36 @@ export function detectRectangles(b1, b2)
     //     }
     // }
 
+    var minDist = Number.MAX_VALUE;
+    var contactPoint = new Vector2();
+
+    for (let vertice of b1.vertices) {
+        let proj = vertice.dot(normal);
+        if (proj < minDist) {
+            minDist = proj;
+            contactPoint = vertice.clone();
+            //console.log(contactPoint);
+            //error;
+        }
+        //console.log(proj);
+    }
+
+    for (let vertice of b2.vertices) {
+        let proj = vertice.dot(normal);
+        if (proj < minDist) {
+            minDist = proj;
+            contactPoint = vertice.clone();
+            //console.log(contactPoint);
+        }
+        //console.log(proj);
+    }
+
     return new Collision(
         b1,
         b2,
         normal,
         depth,
-        null
+        contactPoint
     );
 }
 
