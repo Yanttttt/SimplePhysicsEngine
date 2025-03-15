@@ -16,8 +16,8 @@ class Vector2 {
     /**
      * @param {Vector2} v
      */
-    add(v) {
-        return new Vector2(this.x + v.x, this.y + v.y);
+    add(v, s=1.0) {
+        return new Vector2(this.x + s*v.x, this.y + s*v.y);
     }
 
     /**

@@ -1,18 +1,20 @@
 import * as Draw from "./Draw.js";
-import * as Entities from "./Entity.js";
+import * as Entity from "./Entity.js";
 import * as Collision from "./Collision.js";
 import { Vector2, VectorMath2 } from "./Vector2.js";
 
-var simWidth;
-var simHeight;
+export var simWidth;
+export var simHeight;
 
-export var gravity = new Vector2(0, -5);
+export var gravity = new Vector2(0, -9.8);
 export var dt = 1.0 / 60;
 export var worldSize = new Vector2(0, 0); // Initialize with default values
 export var paused = true;
-var entities = [/** @type {Entity.Entity} */];
-var collisions = [/** @type {Collision.Collision} */];
-var maxAngularVel = 10.0;
+/**  @type {Entity.Rectangle[]|Entity.Circle[]} */
+export var entities = [];
+/** @type {Collision.Collision[]} */
+export var collisions = [];
+export var maxAngularVel = 10.0;
 
 export function init(worldSize_ = null, gravity_ = new Vector2(0.0, -9.8), maxAngularVel_ = 10.0) {
     simWidth = Draw.canvas.width / Draw.scale;
@@ -22,8 +24,12 @@ export function init(worldSize_ = null, gravity_ = new Vector2(0.0, -9.8), maxAn
     worldSize = worldSize_;
     maxAngularVel = maxAngularVel_;
 
+    paused=false;
+
     entities = [];
     collisions = [];
+
+    dt = 1.0 / 60;
 
     if (worldSize == null) {
         worldSize = new Vector2(simWidth, simHeight);
@@ -33,6 +39,7 @@ export function init(worldSize_ = null, gravity_ = new Vector2(0.0, -9.8), maxAn
 }
 
 export function addEntity(entity) {
+    entity.id = entities.length;
     entities.push(entity);
 }
 
@@ -40,25 +47,117 @@ export function addCollision(collision) {
     collisions.push(collision);
 }
 
-export function simulate() {
+export function togglePause() {
+    paused = !paused;
+}
+
+export function setPaused(p) {
+    paused = p;
+}
+
+export function setGravity(g) {
+    gravity = g;
+}
+
+export function setDt(d) {
+    dt = d;
+}
+
+export function setWallCollision(resistitution=0) {
+    var thickness=0.5;
+    var top=new Entity.Rectangle(
+        simWidth,
+        thickness,
+        resistitution,
+        Infinity,
+        //new Vector2(simWidth/2,simHeight+thickness/2),
+        new Vector2(simWidth/2,simHeight),
+        VectorMath2.zero(),
+        0,
+        0
+    );
+    top.setStatic();
+    addEntity(top);
+
+    var bottom=new Entity.Rectangle(
+        simWidth,
+        thickness,
+        resistitution,
+        Infinity,
+        //new Vector2(simWidth/2,-thickness/2),
+        new Vector2(simWidth/2,0),
+        VectorMath2.zero(),
+        0,
+        0
+    );
+    bottom.setStatic();
+    addEntity(bottom);
+
+    var left=new Entity.Rectangle(
+        thickness,
+        simHeight,
+        resistitution,
+        Infinity,
+        //new Vector2(-thickness/2,simHeight/2),
+        new Vector2(0,simHeight/2),
+        VectorMath2.zero(),
+        0,
+        0
+    );
+    left.setStatic();
+    addEntity(left);
+
+    var right=new Entity.Rectangle(
+        thickness,
+        simHeight,
+        resistitution,
+        Infinity,
+        new Vector2(simWidth,simHeight/2),
+        // new Vector2(simWidth+thickness/2,simHeight/2),
+        VectorMath2.zero(),
+        0,
+        0
+    );
+    right.setStatic();
+    addEntity(right);
+}
+
+export function simulate(substep=1.0) {
     if (paused) return;
 
-    for (let i = 0; i < entities.length; i++) {
-        entities[i].simulate(dt, gravity);
-    }
-
-    for (let i = 0; i < entities.length; i++) {
-        for (let j = i + 1; j < i; j++) {
-            var collision = Collision.detect(entities[i],entities[j]);
-            if (collision != null) {
-                addCollision(collision);
+    for(let k=0;k<substep;k++)
+    {
+        for (let i = 0; i < entities.length; i++) {
+            entities[i].simulate(dt/substep,gravity);
+        }
+    
+        for (let i = 0; i < entities.length; i++) {
+            for (let j = i + 1; j < entities.length; j++) {
+                var collision = Collision.detect(entities[i],entities[j]);
+                if (collision != null) {
+                    //console.log(collision);
+                    //error;
+                    addCollision(collision);
+                }
             }
         }
+    
+        for (let i = 0; i < collisions.length; i++) {
+            collisions[i].resolve();
+        }
+    
+        collisions = [];
     }
+}
 
-    for (let i = 0; i < collisions.length; i++) {
-        collisions[i].resolve();
+export function draw() {
+    Draw.clear();
+
+    for (let i = 0; i < entities.length; i++) {
+        if (entities[i].type == "Rectangle") {
+            Draw.drawRectangle(entities[i].pos,entities[i].angle,entities[i].width,entities[i].length,entities[i].colour);
+        } else if (entities[i].type == "Circle") {
+            Draw.drawCircle(entities[i].pos,entities[i].radius,entities[i].colour);
+        }
     }
-
-    collisions = [];
 }

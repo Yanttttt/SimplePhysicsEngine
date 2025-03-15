@@ -10,6 +10,7 @@
             font-family: verdana;
             font-size: 15px;
         }
+
         .button {
             background-color: #5f5f5f;
             border: none;
@@ -22,6 +23,7 @@
             margin: 4px 2px;
             cursor: pointer;
         }
+
         .slider {
             -webkit-appearance: none;
             width: 80px;
@@ -34,18 +36,18 @@
     </style>
 </head>
 
-<Entity>
+<body>
 
-<button class="button" onclick="setupScene()">Restart</button>
-<button class="button" onclick="addBlock()">Add Block</button>
-<button class="button" onclick="addBall()">Add Ball</button>
-Restitution <input type="range" min="0" max="10" value="10" id="restitutionSlider" class="slider">
-<br>
-<canvas id="myCanvas" style="border:2px solid"></canvas>
+    <button class="button" onclick="setupScene()">Restart</button>
+    <button class="button" onclick="addBlock()">Add Block</button>
+    <!-- <button class="button" onclick="addBall()">Add Ball</button> -->
+    Restitution <input type="range" min="0" max="10" value="10" id="restitutionSlider" class="slider">
+    <br>
+    <canvas id="myCanvas" style="border:2px solid"></canvas>
 
-<script type="module" src="biliard.js">
-    
-</script>
-</Entity>
+    <script type="module" src="biliard.js">
+
+    </script>
+</body>
+
 </html>
-

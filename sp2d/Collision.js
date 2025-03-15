@@ -22,11 +22,119 @@ export class Collision
     resolve()
     {
         var corrFactor=0.8;
+        if(this.entity1.type==="Circle" && this.entity2.type==="Circle")
+        {
+            this.resolveCircles(corrFactor);
+        }
+        if(this.entity1.type==="Rectangle" && this.entity2.type==="Rectangle")
+        {
+            this.resolveRectangles(corrFactor);
+        }
     }
 
     resolveRectangles(corrFactor=0.8)
     {
+        var e1 = this.entity1;
+        var e2 = this.entity2;
+        var normal = this.normal;
+        var depth = this.depth;
+        //var P = collision.contactPoint;
+
+        // var r_ap = P.subtract(a.pos);
+        // var r_bp = P.subtract(b.pos);
+
+        // var v_a = a.vel.plus(r_ap.perpendicular(), a.angularVelocity);
+        // var v_b = b.vel.plus(r_bp.perpendicular(), b.angularVelocity);
+
+        // var v_rel = v_b.subtract(v_a);
+        // var v_rel_n = v_rel.dot(normal);
+
+        // if (v_rel_n > 0) return;
+
+        // var r_ap_cross_n = r_ap.cross(normal);
+        // var r_bp_cross_n = r_bp.cross(normal);
+
+        // var denom = a.massInv + b.massInv +
+        //     (r_ap_cross_n * r_ap_cross_n) * a.inertiaInv +
+        //     (r_bp_cross_n * r_bp_cross_n) * b.inertiaInv;
+
+        // var J = -(1 + restitution) * v_rel_n / denom;
+
+        // var impulse = normal.times(J);
+
+        // a.vel.add(impulse.times(-a.massInv));
+        // b.vel.add(impulse.times(b.massInv));
+
+        // a.angularVelocity += r_ap.cross(impulse) * a.inertiaInv;
+        // b.angularVelocity -= r_bp.cross(impulse) * b.inertiaInv;
+
+        // a.angularVelocity = Math.min(
+        //     Math.max(a.angularVelocity, -physicsScene.maxAngularVel),
+        //     physicsScene.maxAngularVel
+        // );
+        // b.angularVelocity = Math.min(
+        //     Math.max(b.angularVelocity, -physicsScene.maxAngularVel),
+        //     physicsScene.maxAngularVel
+        // );
+
+        // //avoid penetration
+        // var factor = 1;
+        // var corr = normal.times(depth * factor / (a.massInv + b.massInv));
+
+        // a.pos.add(corr.times(-a.massInv));
+        // b.pos.add(corr.times(b.massInv));
+
+        if(e1.mass===Infinity && e2.mass===Infinity)
+        {
+            return;
+        }// 2 static entities
+
+        if(VectorMath2.subtract(e2.vel,e1.vel).dot(normal)>1e-5)// separating
+        {
+            return;
+        }
+
+        console.log("collision resolving!")
+        console.log("collison is ", this);
         
+        var e=Math.min(e1.resistitution,e2.resistitution);
+        console.log(e);
+
+        var v1=e1.vel.dot(normal);
+        var v2=e2.vel.dot(normal);
+
+        var m1=e1.mass;
+        var m2=e2.mass;
+
+        var corr = depth*corrFactor;
+        console.log(corr);
+
+        if(e1.mass==Infinity) {
+            e2.pos.addEqual(normal, 2*corr);
+            e2.vel.addEqual(normal,-v2*e);
+            return;
+        }
+        else if(e2.mass===Infinity) {
+            e1.pos.addEqual(normal, -2*corr);
+            e1.vel.addEqual(normal,-v1*e);
+            return;
+        }
+
+        e1.pos.addEqual(normal, -corr);
+        e2.pos.addEqual(normal, corr);
+        
+        var v1f=(m1*v1+m2*(2*v2-v1))*e/(m1+m2);
+        var v2f=(m2*v2+m1*(2*v1-v2))*e/(m1+m2);
+
+        if(!v1f) v1f=0;
+        if(!v2f) v2f=0;
+
+        console.log(v1f,v2f);
+
+        //error;
+
+        e1.vel.addEqual(normal,v1f-v1);
+        e2.vel.addEqual(normal,v2f-v2);
     }
 
     resolveCircles(corrFactor=0.8)
@@ -95,6 +203,23 @@ export function detectCircles(c1, c2)
  */
 export function detectRectangles(b1, b2)
 {
+
+    // if(b1.id==0||b1.id==1||b1.id==2||b1.id==3)
+    //     {
+    //         if(b2.id==0||b2.id==1||b2.id==2||b2.id==3){}
+    //         else{
+    //             console.log("wall detecting");
+    //         }
+    //     }
+    
+    //     if(b2.id==0||b2.id==1||b2.id==2||b2.id==3)
+    //     {
+    //         if(b1.id==0||b1.id==1||b1.id==2||b1.id==3){}
+    //         else{
+    //             console.log("wall detecting");
+    //         }
+    //     }
+
     var normal=new Vector2(0,0);
     var depth=Number.MAX_VALUE;
 
@@ -108,6 +233,11 @@ export function detectRectangles(b1, b2)
 
         var projA=projectVertices(b1,axis);
         var projB=projectVertices(b2,axis);
+
+        if (!projA || !projB)
+        {
+            console.log("null proj vector!");
+        }
 
         if(projA.min>=projB.max || projB.min>=projA.max)
         {
@@ -137,6 +267,12 @@ export function detectRectangles(b1, b2)
         projA=projectVertices(b1,axis);
         projB=projectVertices(b2,axis);
 
+
+        if (!projA || !projB)
+        {
+            console.log("null proj vector!");
+        }
+
         if(projA.min>=projB.max || projB.min>=projA.max)
         {
             return null;
@@ -163,6 +299,21 @@ export function detectRectangles(b1, b2)
 
     //var contactPoint=new Vector2(0,0);
     
+    // if(b1.id==0||b1.id==1||b1.id==2||b1.id==3)
+    // {
+    //     if(b2.id==0||b2.id==1||b2.id==2||b2.id==3){}
+    //     else{
+    //         console.log("wall collided");
+    //     }
+    // }
+
+    // if(b2.id==0||b2.id==1||b2.id==2||b2.id==3)
+    // {
+    //     if(b1.id==0||b1.id==1||b1.id==2||b1.id==3){}
+    //     else{
+    //         console.log("wall collided");
+    //     }
+    // }
 
     return new Collision(
         b1,
@@ -175,11 +326,11 @@ export function detectRectangles(b1, b2)
 
 export function detect(entity1,entity2)
 {
-    if(entity1.type==="circle" && entity2.type==="circle")
+    if(entity1.type==="Circle" && entity2.type==="Circle")
     {
         return detectCircles(entity1,entity2);
     }
-    else if(entity1.type==="rectangle" && entity2.type==="rectangle")
+    else if(entity1.type==="Rectangle" && entity2.type==="Rectangle")
     {
         return detectRectangles(entity1,entity2);
     }

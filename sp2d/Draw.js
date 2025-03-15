@@ -1,4 +1,4 @@
-//import * as body from "./Body.js";
+import * as Entity from "./Entity.js";
 
 export var canvas;
 export var ctx;
@@ -27,36 +27,49 @@ function convertY(pos)
     return canvas.height - pos.y * scale;
 }
 
+export function getRandomColour() {
+    let r = Math.floor(Math.random() * 256).toString(16);
+    let g = Math.floor(Math.random() * 256).toString(16);
+    let b = Math.floor(Math.random() * 256).toString(16);
 
-export function drawRectangle(r)
+    r = r.length === 1 ? "0" + r : r;
+    g = g.length === 1 ? "0" + g : g;
+    b = b.length === 1 ? "0" + b : b;
+
+    return "#"+(r + g + b).toUpperCase();
+}
+
+
+
+export function drawRectangle(pos,angle,width,length,colour)
 {
-    ctx.fillStyle=r.colour;
+    ctx.fillStyle=colour;
 
     ctx.save();
-    ctx.translate(convertX(r.pos), convertY(r.pos));
-    ctx.rotate(r.angle);
+    ctx.translate(convertX(pos), convertY(pos));
+    ctx.rotate(-angle);
     ctx.fillRect(
-        -scale * r.width / 2,
-        -scale * r.length / 2,
-        scale * r.width,
-        scale * r.length
+        -scale * width / 2,
+        -scale * length / 2,
+        scale * width,
+        scale * length
     );
     ctx.restore();
 }
 
-export function drawCircle(r)
+export function drawCircle(pos,radius,colour)
 {
-    ctx.fillStyle=r.colour;
+    ctx.fillStyle=colour;
 
     ctx.beginPath();
     ctx.arc(
-        convertX(r.pos),
-        convertY(r.pos),
-        scale * r.radius,
+        convertX(pos),
+        convertY(pos),
+        scale * radius,
         0,
         2 * Math.PI
     );
-    ctx.closePath();
+    //ctx.closePath();
     ctx.fill();
 }
 

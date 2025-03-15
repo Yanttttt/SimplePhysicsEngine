@@ -2,24 +2,26 @@ import { Vector2, VectorMath2 } from "./Vector2.js";
 
 export class Rectangle {
     constructor(
-        length,
         width,
+        length,
         resistitution = 0,
-        mass = null,
+        mass = 0,
         pos = VectorMath2.zero(),
         vel = VectorMath2.zero(),
         angle = 0,
         angularVel = 0,
-        colour = "#00FF00"
+        colour = "#007F00"
     ) {
-        this.type = "rectangle";
+        this.id=null;
+        this.type = "Rectangle";
 
         this.length = length;
         this.width = width;
-        if(resistitution === undefined || resistitution === null)
-            this.resistitution = resistitution;
 
-        if(mass === undefined || mass === null)
+        this.resistitution = resistitution;
+        
+        this.mass = mass;
+        if(mass === undefined || mass === 0)
             this.mass = length * width;
         this.massInv = 1 / mass;
         this.inertia = (1 / 12) * mass * (length ** 2) + (1 / 12) * mass * (width ** 2);
@@ -39,6 +41,7 @@ export class Rectangle {
         this.inertia = Infinity;
         this.massInv = 0;
         this.inertiaInv = 0;
+        this.vel = VectorMath2.zero();
     }
 
     /**
@@ -46,8 +49,10 @@ export class Rectangle {
      * @param {Vector2} gravity
      */
     simulate(dt, gravity) {
-        this.vel.add(gravity.times(dt));
-        this.pos.add(this.vel.times(dt));
+        // console.log(gravity,dt);
+        // console.log(this.width,this.length);
+        this.vel.addEqual(gravity,dt);
+        this.pos.addEqual(this.vel,dt);
         this.angle += this.angularVel * dt;
         this.vertices = this.getVertices();
     }
@@ -62,21 +67,23 @@ export class Rectangle {
             new Vector2(
                 this.pos.x + halfWidth * cosA - halfLength * sinA,
                 this.pos.y + halfWidth * sinA + halfLength * cosA
-            ),//Top-Right
+            ), // Top-Right
+    
             new Vector2(
                 this.pos.x - halfWidth * cosA - halfLength * sinA,
-                this.pos.y + halfWidth * sinA - halfLength * cosA
-            ),//Top-Left
-            new Vector2(
-                this.pos.x - halfWidth * cosA + halfLength * sinA, 
-                this.pos.y - halfWidth * sinA - halfLength * cosA
-            ),//Bottom-Left
-            new Vector2(
-                this.pos.x + halfWidth * cosA + halfLength * sinA, 
                 this.pos.y - halfWidth * sinA + halfLength * cosA
-            )//Bottom-Right
+            ), // Top-Left
+    
+            new Vector2(
+                this.pos.x - halfWidth * cosA + halfLength * sinA,
+                this.pos.y - halfWidth * sinA - halfLength * cosA
+            ), // Bottom-Left
+    
+            new Vector2(
+                this.pos.x + halfWidth * cosA + halfLength * sinA,
+                this.pos.y + halfWidth * sinA - halfLength * cosA
+            )  // Bottom-Right
         ];
-        //counter-clockwise
     }
 }
 
@@ -89,6 +96,7 @@ export class Circle {
         vel = VectorMath2.zero(),
         colour = "#FF0000"
     ) {
+        this.id=null;
         this.radius = radius
         this.resistitution = resistitution;
         if (mass == null)
@@ -97,7 +105,7 @@ export class Circle {
         this.pos = pos;
         this.vel = vel;
         this.colour = colour;
-        this.type = "circle";
+        this.type = "Circle";
     }
 
     setStatic() {
@@ -110,7 +118,7 @@ export class Circle {
      * @param {Vector2} gravity
      */
     simulate(dt, gravity) {
-        this.vel.add(gravity.times(dt));
-        this.pos.add(this.vel.times(dt));
+        this.vel.addEqual(gravity.times(dt));
+        this.pos.addEqual(this.vel.times(dt));
     }
 }
