@@ -5,9 +5,9 @@ import * as Entity from "./sp2d/Entity.js";
 import * as Collision from "./sp2d/Collision.js";
 
 Draw.init("myCanvas");
-PhysicsScene.init(undefined,new Vector2(0.0, 0));
-setWallCollision();
-//PhysicsScene.setWallCollision(1);
+PhysicsScene.init(undefined,new Vector2(0.0, -9.8));
+//setWallCollision();
+PhysicsScene.setWallCollision(1);
 
 function addBlock() {
     var size = Math.random() * 0.2 + 0.1;
@@ -127,7 +127,7 @@ function updateFrame() {
     {
         Draw.drawCircle(c.contactPoint,0.01, "#FFFF00");
     }
-    requestAnimationFrame(updateFrame); //recursive call
+    requestAnimationFrame(updateFrame); //recursive call, default 60Hz
 }
 
 updateFrame();

@@ -21,10 +21,13 @@ export class Rectangle {
         this.restitution = restitution;
         
         this.mass = mass;
-        if(mass === undefined || mass === 0)
+        if(!mass)
+        {
             this.mass = length * width;
-        this.massInv = 1 / mass;
-        this.inertia = (1 / 12) * mass * (length ** 2) + (1 / 12) * mass * (width ** 2);
+        }
+
+        this.massInv = 1 / this.mass;
+        this.inertia = (1 / 12) * this.mass * (this.length ** 2) + (1 / 12) * this.mass * (this.width ** 2);
         this.inertiaInv = 1 / this.inertia;
 
         this.pos = pos;

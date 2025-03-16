@@ -35,7 +35,7 @@ export class Collision {
     resolveRectangles(corrFactor = 0.8) {
         var a = this.entity1;
         var b = this.entity2;
-        var normal = this.normal;
+        var normal = this.normal.clone();
         var depth = this.depth;
         var P = this.contactPoint;
 
@@ -44,58 +44,79 @@ export class Collision {
         if (a.mass === Infinity && b.mass === Infinity) {
             return;
         }// 2 static entities
-        console.log(this.contactPoint);
+        // console.log(this.contactPoint);
 
         var r_ap = P.subtract(a.pos);
         var r_bp = P.subtract(b.pos);
 
-        var v_a = a.vel.add(r_ap.perpendicular(), a.angularVelocity);
-        var v_b = b.vel.add(r_bp.perpendicular(), b.angularVelocity);
+        var v_a = a.vel.add(r_ap.perpendicular(), a.angularVel);
+        var v_b = b.vel.add(r_bp.perpendicular(), b.angularVel);
+
+        //console.log(b.angularVel);
 
         var v_rel = v_b.subtract(v_a);
         var v_rel_n = v_rel.dot(normal);
 
         var r_ap_cross_n = r_ap.cross(normal);
         var r_bp_cross_n = r_bp.cross(normal);
+        // error;
 
         var denom = 0;
         if (a.mass !== Infinity) {
             denom += a.massInv + (r_ap_cross_n * r_ap_cross_n) * a.inertiaInv;
         }
+        // console.log(denom);
+        // error;
         if (b.mass !== Infinity) {
             denom += b.massInv + (r_bp_cross_n * r_bp_cross_n) * b.inertiaInv;
+
+            //console.log(b.massInv,r_bp_cross_n,b.inertiaInv);
+        // error;
         }
 
-        console.log(denom);
-        error;
+        // console.log(denom);
+        // error;
 
         if (denom === 0) {
             console.log("denom == 0");
         }
-        denom = Math.max(denom, 1e-5);
+        denom = Math.max(denom, 1e-20);
 
         var J = -(1 + e) * v_rel_n / denom;
 
+
         var impulse = normal.times(J);
+
+        // if(normal==undefined) console.log("normal undefined", normal);
+
+        // if(Number.isNaN(impulse.x)||Number.isNaN(impulse.y))
+        //     {
+        //         console.log("normal",normal);
+        //         console.log("v_rel_n",v_rel_n);
+        //         console.log("denom",denom);
+        //         error;
+        //     }
 
         if (a.mass !== Infinity) {
             a.vel.addEqual(impulse.times(-a.massInv));
-            a.angularVelocity += r_ap.cross(impulse) * a.inertiaInv;
+            a.angularVel -= r_ap.cross(impulse) * a.inertiaInv;
         }
         if (b.mass !== Infinity) {
             b.vel.addEqual(impulse.times(b.massInv));
-            b.angularVelocity -= r_bp.cross(impulse) * b.inertiaInv;
+            b.angularVel += r_bp.cross(impulse) * b.inertiaInv;
         }
+
+        
 
         if (a.mass !== Infinity) {
             a.angularVelocity = Math.min(
-                Math.max(a.angularVelocity, -PhysicsScene.maxAngularVel),
+                Math.max(a.angularVel, -PhysicsScene.maxAngularVel),
                 PhysicsScene.maxAngularVel
             );
         }
         if (b.mass !== Infinity) {
             b.angularVelocity = Math.min(
-                Math.max(b.angularVelocity, -PhysicsScene.maxAngularVel),
+                Math.max(b.angularVel, -PhysicsScene.maxAngularVel),
                 PhysicsScene.maxAngularVel
             );
         }
@@ -105,6 +126,13 @@ export class Collision {
         var totalMassInv = (a.mass !== Infinity ? a.massInv : 0) + (b.mass !== Infinity ? b.massInv : 0);
         if (totalMassInv > 0) {
             var corr = normal.times(depth * corrFactor / totalMassInv);
+            if(Number.isNaN(corr))
+                {
+                    console.log("corr",corr);
+                    console.log("depth",depth);
+                    console.log("totalMassInv",depth);
+                    error;
+                }
             if (a.mass !== Infinity) {
                 a.pos.addEqual(corr.times(-a.massInv));
             }
@@ -364,6 +392,9 @@ export function detectRectangles(b1, b2) {
             let va = ra.vertices[i];
             let vb = ra.vertices[(i + 1) % 4];
 
+            //console.log("ra", ra);
+            Draw.drawRectangle(ra.pos,ra.angle,ra.width,ra.length, ra.colour);
+
             let edge = vb.subtract(va);
             let axis = edge.perpendicular().normalise();
 
@@ -372,13 +403,19 @@ export function detectRectangles(b1, b2) {
             let projA = projectVertices(ra, axis);
             let projB = projectVertices(rb, axis);
 
-            if (projA.min >= projB.max || projB.min >= projA.max) return false;
-            // one axis can seperate 2 objects, no collision, return.
+            if (projA.min >= projB.max || projB.min >= projA.max)
+            {
+                return false;
+                // one axis can seperate 2 objects, no collision, return.
+            }
 
             let overlap = Math.min(projA.max - projB.min, projB.max - projA.min);
+
+            //console.log(depth,overlap);
             if (overlap < depth) {
                 depth = overlap; // penetration is the minimum overlap
-                normal = axis;
+                normal = axis.clone();
+                //console.log(normal);
             }
         }
         return true;
@@ -390,23 +427,32 @@ export function detectRectangles(b1, b2) {
     // Since it only depends on the number of edges
     // In O(n^2) time
 
-    if (!checkCollision(b1, b2) || !checkCollision(b2, b1)) return null;
+    if (!checkCollision(b1, b2) || !checkCollision(b2, b1))       return null;
+
+    //if(normal.x==0&&normal.y==0) return null;
 
     var dir = b2.pos.subtract(b1.pos);
     if (dir.dot(normal) < 0) normal = normal.times(-1);
 
+    if (normal.length() === 0) {
+        console.error("Normal is zero before final adjustment");
+        error;
+        return null;
+    }
+
     var contactPoints1=[]; 
     var contactPoints2=[];
-    var contactPointA,contactPointB;
+    //var contactPointA,contactPointB;
     var contactPoint=b1.pos.clone();
 
     for (let v of b1.vertices) {
-        if (v.subtract(b1.pos).dot(normal) >= contactPoint.subtract(b1.pos).dot(normal)) {
-            contactPoint = v.clone();
-            if(v.subtract(b1.pos).dot(normal) > contactPoint.subtract(b1.pos).dot(normal))
+        if (v.dot(normal) >= contactPoint.dot(normal)) {
+            //console.log(v.dot(normal),contactPoint.dot(normal));
+            if(v.dot(normal) > contactPoint.dot(normal))
             {
                 contactPoints1=[];
             }
+            contactPoint = v.clone();
             contactPoints1.push(contactPoint);
         }
     }
@@ -414,12 +460,13 @@ export function detectRectangles(b1, b2) {
     contactPoint=b2.pos.clone();
     normal.timesEqual(-1);
     for (let v of b2.vertices) {
-        if (v.subtract(b2.pos).dot(normal) > contactPoint.subtract(b2.pos).dot(normal)) {
-            contactPoint = v.clone();
-            if(v.subtract(b2.pos).dot(normal) > contactPoint.subtract(b2.pos).dot(normal))
+        if (v.dot(normal) >= contactPoint.dot(normal)) {
+            //console.log(v.dot(normal),contactPoint.dot(normal));
+            if(v.dot(normal) > contactPoint.dot(normal))
             {
                 contactPoints2=[];
             }
+            contactPoint = v.clone();
             contactPoints2.push(contactPoint);
         }
     }
@@ -437,12 +484,13 @@ export function detectRectangles(b1, b2) {
     }
     else
     {
-        console.log(contactPoints1.length,contactPoints2.length);
+        console.log(normal,contactPoints1.length,contactPoints2.length);
         
         var min1 = Number.MAX_VALUE;
         var min1v;
         var max1 = -Number.MAX_VALUE;
         var max1v;
+
         for(let c of contactPoints1)
         {
             let proj = c.dot(normal.perpendicular());
@@ -462,7 +510,7 @@ export function detectRectangles(b1, b2) {
         var min2v;
         var max2 = -Number.MAX_VALUE;
         var max2v;
-        for(let c of contactPoints1)
+        for(let c of contactPoints2)
         {
             let proj = c.dot(normal.perpendicular());
             if(proj<min2)
@@ -477,25 +525,74 @@ export function detectRectangles(b1, b2) {
             }
         }
 
-        if(max2-min1<max1-min2)
+        var contactLine=[max2-min1,max1-min2,max1-min1,max2-min2];
+        var contactPoints=[
+            VectorMath2.add(max2v,min1v).times(1/2),
+            VectorMath2.add(max1v,min2v).times(1/2),
+            VectorMath2.add(max1v,min1v).times(1/2),
+            VectorMath2.add(max2v,min2v).times(1/2),
+        ];
+
+        var minCL=Number.MAX_VALUE;
+        for(let i=0;i<contactLine.length;i++)
         {
-            contactPoint=VectorMath2.add(max2v,min1v).times(1/2);
-            Draw.drawCircle(max2v,0.01, "#0000FF");
-            Draw.drawCircle(min1v,0.01, "#0000FF");
-        }
-        else
-        {
-            contactPoint=VectorMath2.add(max1v,min2v).times(1/2);
-            Draw.drawCircle(max1v,0.01, "#0000FF");
-            Draw.drawCircle(min2v,0.01, "#0000FF");
+            if(contactLine[i]<minCL)
+            {
+                minCL=contactLine[i];
+                contactPoint=contactPoints[i];
+            }
         }
 
-        contactPoint.timesEqual(1/(contactPoints1.length+contactPoints2.length));
+        Draw.drawCircle(max2v,0.01, "#0000FF");
+        Draw.drawCircle(min2v,0.01, "#0000FF");
+        Draw.drawCircle(max1v,0.01, "#00FFFF");
+        Draw.drawCircle(min1v,0.01, "#00FFFF");
+        
+
+        // if(max2-min1<max1-min2 &&
+        //     max2-min1<max1-min1 && 
+        //     max2-min1<max2-min2)
+        // {
+        //     contactPoint=VectorMath2.add(max2v,min1v).times(1/2);
+        //     Draw.drawCircle(max2v,0.01, "#0000FF");
+        //     Draw.drawCircle(min1v,0.01, "#0000FF");
+        // }
+        // else(max2-min1<max1-min2 &&
+        //     max2-min1<max1-min1 && 
+        //     max2-min1<max2-min2)
+        // {
+        //     contactPoint=VectorMath2.add(max1v,min2v).times(1/2);
+        //     Draw.drawCircle(max1v,0.01, "#0000FF");
+        //     Draw.drawCircle(min2v,0.01, "#0000FF");
+        // }
+        // else(max2-min1<max1-min2 &&
+        //     max2-min1<max1-min1 && 
+        //     max2-min1<max2-min2)
+        // {
+        //     contactPoint=VectorMath2.add(max1v,min2v).times(1/2);
+        //     Draw.drawCircle(max1v,0.01, "#0000FF");
+        //     Draw.drawCircle(min2v,0.01, "#0000FF");
+        // }
+        // else(max2-min1<max1-min2 &&
+        //     max2-min1<max1-min1 && 
+        //     max2-min1<max2-min2)
+        // {
+        //     contactPoint=VectorMath2.add(max1v,min2v).times(1/2);
+        //     Draw.drawCircle(max1v,0.01, "#0000FF");
+        //     Draw.drawCircle(min2v,0.01, "#0000FF");
+        // }
+        
     }
     //Average contact point
 
     Draw.drawCircle(contactPoint,0.01, "#FFFF00");
-    Draw.drawCircle(contactPoint.add(normal),0.01, "#FFFF00");
+    Draw.drawCircle(contactPoint.add(normal).times(0.1),0.01, "FF0000");
+
+    if (normal.length() === 0) {
+        console.error("Normal is zero before final adjustment");
+        error;
+        return null;
+    }
 
     return new Collision(
         b1,
