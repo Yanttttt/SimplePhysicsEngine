@@ -73,6 +73,69 @@ export function setWallCollision(restitution=0) {
         thickness,
         restitution,
         Infinity,
+        new Vector2(simWidth/2,simHeight+thickness/2),
+        //new Vector2(simWidth/2,simHeight),
+        VectorMath2.zero(),
+        0,
+        0,
+        "#4F4F4F"
+    );
+    top.setStatic();
+    addEntity(top);
+
+    var bottom=new Entity.Rectangle(
+        simWidth,
+        thickness,
+        restitution,
+        Infinity,
+        new Vector2(simWidth/2,-thickness/2),
+        //new Vector2(simWidth/2,0),
+        VectorMath2.zero(),
+        0,
+        0,
+        "#4F4F4F"
+    );
+    bottom.setStatic();
+    addEntity(bottom);
+
+    var left=new Entity.Rectangle(
+        thickness,
+        simHeight,
+        restitution,
+        Infinity,
+        new Vector2(-thickness/2,simHeight/2),
+        //new Vector2(0,simHeight/2),
+        VectorMath2.zero(),
+        0,
+        0,
+        "#4F4F4F"
+    );
+    left.setStatic();
+    addEntity(left);
+
+    var right=new Entity.Rectangle(
+        thickness,
+        simHeight,
+        restitution,
+        Infinity,
+        //new Vector2(simWidth,simHeight/2),
+        new Vector2(simWidth+thickness/2,simHeight/2),
+        VectorMath2.zero(),
+        0,
+        0,
+        "#4F4F4F"
+    );
+    right.setStatic();
+    addEntity(right);
+}
+
+export function setThickWallCollision(restitution=0) {
+    var thickness=0.5;
+    var top=new Entity.Rectangle(
+        simWidth,
+        thickness,
+        restitution,
+        Infinity,
         //new Vector2(simWidth/2,simHeight+thickness/2),
         new Vector2(simWidth/2,simHeight),
         VectorMath2.zero(),
@@ -132,6 +195,8 @@ export function setWallCollision(restitution=0) {
 export function simulate(substep=1) {
     if (paused) return;
 
+    collisions = [];
+
     // substep indicates how many times we simulate in 1 frame.
     for(let k=0;k<substep;k++)
     {
@@ -153,8 +218,6 @@ export function simulate(substep=1) {
         for (let i = 0; i < collisions.length; i++) {
             collisions[i].resolve();
         }
-    
-        collisions = [];
     }
 }
 

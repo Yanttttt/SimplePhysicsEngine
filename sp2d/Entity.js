@@ -103,9 +103,9 @@ export class Circle {
         this.id=null;
         this.radius = radius
         this.restitution = restitution;
-        if (mass == null)
+        if (!mass)
             this.mass = Math.PI * radius ** 2;
-        this.massInv = 1 / mass;
+        this.massInv = 1 / this.mass;
         this.pos = pos;
         this.vel = vel;
         this.colour = colour;
