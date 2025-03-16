@@ -5,9 +5,9 @@ import * as Entity from "./sp2d/Entity.js";
 import * as Collision from "./sp2d/Collision.js";
 
 Draw.init("myCanvas");
-PhysicsScene.init(undefined,new Vector2(0.0, -9.8));
+PhysicsScene.init(undefined,new Vector2(0.0, 0));
 //setWallCollision();
-PhysicsScene.setThickWallCollision(1);
+PhysicsScene.setWallCollision(1);
 
 function addBlock() {
     var size = Math.random() * 0.2 + 0.1;
@@ -37,7 +37,7 @@ function addBall() {
 window.addBall = addBall;
 
 function setupScene() {
-    PhysicsScene.init(undefined,new Vector2(0.0, -9.8));
+    PhysicsScene.init(undefined,new Vector2(0.0, 0));
     //setWallCollision();
     PhysicsScene.setWallCollision(1);
 }

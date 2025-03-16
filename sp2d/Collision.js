@@ -151,7 +151,7 @@ export class Collision {
 
         var e = Math.min(c.restitution, b.restitution);
 
-        console.log(c.restitution, b.restitution);
+        // console.log(c.restitution, b.restitution);
 
         if (c.mass === Infinity && b.mass === Infinity) {
             return;
@@ -529,7 +529,7 @@ export function detectRectangles(b1, b2) {
         contactPoint = contactPoints2[0];
     }
     else {
-        console.log(normal, contactPoints1.length, contactPoints2.length);
+        // console.log(normal, contactPoints1.length, contactPoints2.length);
 
         var min1 = Number.MAX_VALUE;
         var min1v;

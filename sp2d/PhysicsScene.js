@@ -201,6 +201,8 @@ export function simulate(substep=1) {
     for(let k=0;k<substep;k++)
     {
         for (let i = 0; i < entities.length; i++) {
+            var p=entities[i].pos.clone();
+            if((p.x>2*simWidth||p.x<-simWidth)&&(p.y<-simHeight||p.y>2*simHeight)) continue;
             entities[i].simulate(dt/substep,gravity);
         }
     
