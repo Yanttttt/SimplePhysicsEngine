@@ -310,7 +310,7 @@ export function detect(entity1, entity2) {
     }
     if (
         (entity1.type === "Rectangle" || entity1.type === "Polygon") && 
-        (entity2.type === "Rectangle" || entity1.type === "Polygon")
+        (entity2.type === "Rectangle" || entity2.type === "Polygon")
     ) {
         //console.log("polygons!");
         return detectPolygons(entity1, entity2);
