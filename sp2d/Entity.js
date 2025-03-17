@@ -119,22 +119,15 @@ export class Polygon {
         //console.log(Polygon.computeCentroid(vertices));
         console.log(this.pos);
         
-        this.vertices=[];
-        for(let i=0;i<vertices.length;i++)
-        {
-            this.vertices.push(vertices[i].clone());
-        }
+        this.vertices = vertices.map(v => new Vector2(v.x, v.y));
+        //shallow copy
 
         // Draw.drawPolygon(this.vertices,this.colour);
         // for(let i of this.vertices) {
         //     Draw.drawCircle(i,0.01, "#FF0000");
         // }
 
-        this.localVertices = [];
-        for(let i=0;i<vertices.length;i++)
-        {
-            this.localVertices.push(vertices[i].subtract(this.pos));
-        }
+        this.localVertices = vertices.map(v => new Vector2(v.x-this.pos.x, v.y-this.pos.y));
 
         this.vel = vel.clone();
         this.angle = angle;
@@ -166,6 +159,7 @@ export class Polygon {
         this.pos.addEqual(this.vel, dt);
         this.angle += this.angularVel * dt;
         this.vertices = this.getVertices();
+        //this.localVertices = this.vertices.map(v => new Vector2(v.x-this.pos.x, v.y-this.pos.y));
     }
 
     draw()
@@ -207,10 +201,10 @@ export class Polygon {
             let j = (i + 1) % vertices.length;
             let p1 = vertices[i].subtract(centroid);
             let p2 = vertices[j].subtract(centroid);
-            let cross = Math.abs(p1.cross(p2));
+            let cross = p1.cross(p2);
             inertia += (p1.dot(p1) + p1.dot(p2) + p2.dot(p2)) * cross;
         }
-        return (mass * inertia) / 6;
+        return Math.abs((mass * inertia) / (6*Polygon.computeArea(vertices)));
     }
 
     getVertices() {

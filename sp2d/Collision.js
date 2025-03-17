@@ -315,11 +315,13 @@ export function detect(entity1, entity2) {
         //console.log("polygons!");
         return detectPolygons(entity1, entity2);
     }
-    if ((entity1.type === "Circle" && entity2.type === "Rectangle")) {
-        return detectCircleRectangle(entity1, entity2);
+    if ((entity1.type === "Circle" && 
+        (entity2.type === "Rectangle" || entity2.type === "Polygon"))) {
+        return detectCirclePolygon(entity1, entity2);
     }
-    if (entity1.type === "Rectangle" && entity2.type === "Circle") {
-        return detectCircleRectangle(entity2, entity1);
+    if ((entity1.type === "Rectangle" || entity1.type === "Polygon") && 
+        entity2.type === "Circle") {
+        return detectCirclePolygon(entity2, entity1);
     }
 }
 
@@ -346,7 +348,7 @@ export function detectCircles(c1, c2) {
  * @param {Entity.Circle} c
  * @param {Entity.Rectangle} r
  */
-export function detectCircleRectangle(c, r) {
+export function detectCirclePolygon(c, r) {
 
     var normal = VectorMath2.zero();
     var depth = Number.MAX_VALUE;
@@ -356,7 +358,7 @@ export function detectCircleRectangle(c, r) {
 
     for (let i = 0; i < 4; i++) {
         let va = r.vertices[i];
-        let vb = r.vertices[(i + 1) % 4];
+        let vb = r.vertices[(i + 1) % r.vertices.length];
 
         let edge = VectorMath2.subtract(vb, va);
         axis = edge.perpendicular().normalise();
@@ -614,7 +616,7 @@ export function detectPolygons(p1, p2) {
         return;
     }
 
-    console.log("polygons!",p1,p2);
+    //console.log("polygons!",p1,p2);
 
     //console.log(p1,p2);
 
@@ -623,8 +625,10 @@ export function detectPolygons(p1, p2) {
 
     function checkCollision(pa, pb) {
         for (let i = 0; i < pa.vertices.length; i++) {
+            //console.log(pa.vertices[(i + 1) % pa.vertices.length]);
+
             let va = pa.vertices[i];
-            let vb = pa.vertices[(i + 1) % 4];
+            let vb = pa.vertices[(i + 1) % pa.vertices.length];
 
             //console.log("ra", ra);
 
@@ -675,7 +679,7 @@ export function detectPolygons(p1, p2) {
     //var contactPointA,contactPointB;
     var contactPoint = p1.pos.clone();
 
-    var eps = Math.min(p1.width + p1.length, p2.width + p2.length) / 10000000;
+    var eps = 1e-5;
 
     for (let v of p1.vertices) {
         let diff = v.dot(normal) - contactPoint.dot(normal);
@@ -715,7 +719,7 @@ export function detectPolygons(p1, p2) {
         contactPoint = contactPoints2[0];
     }
     else {
-        // console.log(normal, contactPoints1.length, contactPoints2.length);
+        //console.log(normal, contactPoints1.length, contactPoints2.length);
 
         var min1 = Number.MAX_VALUE;
         var min1v;
@@ -750,6 +754,13 @@ export function detectPolygons(p1, p2) {
             }
         }
 
+        // Draw.drawCircle(max2v, 0.01, "#0000FF");
+        // Draw.drawCircle(min2v, 0.01, "#0000FF");
+        // Draw.drawCircle(max1v, 0.01, "#00FFFF");
+        // Draw.drawCircle(min1v, 0.01, "#00FFFF");
+
+        //console.log(max2v);
+
         var contactLine = [max2 - min1, max1 - min2, max1 - min1, max2 - min2];
         var contactPoints = [
             VectorMath2.add(max2v, min1v).times(1 / 2),
@@ -765,11 +776,6 @@ export function detectPolygons(p1, p2) {
                 contactPoint = contactPoints[i];
             }
         }
-
-        // Draw.drawCircle(max2v, 0.01, "#0000FF");
-        // Draw.drawCircle(min2v, 0.01, "#0000FF");
-        // Draw.drawCircle(max1v, 0.01, "#00FFFF");
-        // Draw.drawCircle(min1v, 0.01, "#00FFFF");
 
     }
     //Average contact point

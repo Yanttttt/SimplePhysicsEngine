@@ -5,7 +5,7 @@ import * as Entity from "./sp2d/Entity.js";
 import * as Collision from "./sp2d/Collision.js";
 
 Draw.init("myCanvas");
-PhysicsScene.init(undefined,new Vector2(0.0, 0));
+PhysicsScene.init(undefined,new Vector2(0.0, -9.8));
 //setWallCollision();
 PhysicsScene.setThickWallCollision(1);
 
@@ -45,7 +45,7 @@ function addTriangle() {
             )));
     }
 
-    console.log(vertices);
+    //console.log(vertices);
 
     var vel = new Vector2(Math.random() * 2 - 1, Math.random() * 2 - 1);
     var angularVel = Math.random() * 2 - 1;
@@ -57,14 +57,14 @@ function addTriangle() {
     // console.log("mass:",triangle.mass);
     // //console.log(triangle.localVertices);
     // console.log("vertices",triangle.vertices);
-    console.log("pos",triangle.pos);
+    // console.log("pos",triangle.pos);
     console.log('Triangle added');
 
-    console.log(triangle);
+    // console.log(triangle);
 
     PhysicsScene.addEntity(triangle);
     // error;
-    console.log(PhysicsScene.entities);
+    // console.log(PhysicsScene.entities);
 }
 window.addTriangle = addTriangle;
 
