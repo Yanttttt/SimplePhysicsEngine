@@ -16,7 +16,7 @@ export var entities = [];
 export var collisions = [];
 export var maxAngularVel = 10.0;
 
-export function init(worldSize_ = null, gravity_ = new Vector2(0.0, -9.8), maxAngularVel_ = 10.0) {
+export function init(worldSize_ = null, gravity_ = new Vector2(0.0, -9.8), maxAngularVel_=Infinity) {
     simWidth = Draw.canvas.width / Draw.scale;
     simHeight = Draw.canvas.height / Draw.scale;
 

@@ -60,14 +60,13 @@ export class Collision {
         var v_rel = v_b.subtract(v_a);
         var v_rel_n = v_rel.dot(normal);
 
-        // if(v_rel_n>0)
-        // {
-        //     return;
-        // }//seperating
+        if(v_rel_n>0)
+        {
+            return;
+        }//seperating
 
         var r_ap_cross_n = r_ap.cross(normal);
         var r_bp_cross_n = r_bp.cross(normal);
-        // error;
 
         var denom = 0;
         if (a.mass !== Infinity) {
@@ -87,45 +86,55 @@ export class Collision {
 
         if (denom === 0) {
             console.log("denom == 0");
+            return;
         }
         denom = Math.max(denom, 1e-20);
 
+        var tangent = normal.perpendicular();
+        var v_rel_t = v_rel.dot(tangent); //tangent vel
+        var Jf = -v_rel_t / denom; //friction impulse
+
+        //console.log(Jf);
+
+        var mu = (a.friction + b.friction) / 2;
+        //console.log(mu);
+
         var J = -(1 + e) * v_rel_n / denom;
-
-
+        Jf = Math.max(-mu * Math.abs(J), Math.min(mu * Math.abs(J), Jf)); 
+        
         var impulse = normal.times(J);
+        var frictionImpulse = tangent.times(Jf);
 
-        // if(normal==undefined) console.log("normal undefined", normal);
+        //console.log(tangent,Jf,tangent.times(Jf));
 
-        // if(Number.isNaN(impulse.x)||Number.isNaN(impulse.y))
-        //     {
-        //         console.log("normal",normal);
-        //         console.log("v_rel_n",v_rel_n);
-        //         console.log("denom",denom);
-        //         error;
-        //     }
 
         if (a.mass !== Infinity) {
             a.vel.addEqual(impulse.times(-a.massInv));
             a.angularVel -= r_ap.cross(impulse) * a.inertiaInv;
+
+            a.vel.addEqual(frictionImpulse.times(-a.massInv));
+            a.angularVel -= r_ap.cross(frictionImpulse) * a.inertiaInv;
         }
         if (b.mass !== Infinity) {
             b.vel.addEqual(impulse.times(b.massInv));
             b.angularVel += r_bp.cross(impulse) * b.inertiaInv;
+
+            b.vel.addEqual(frictionImpulse.times(b.massInv));
+            b.angularVel += r_bp.cross(frictionImpulse) * b.inertiaInv;
         }
 
-        if (a.mass !== Infinity) {
-            a.angularVelocity = Math.min(
-                Math.max(a.angularVel, -PhysicsScene.maxAngularVel),
-                PhysicsScene.maxAngularVel
-            );
-        }
-        if (b.mass !== Infinity) {
-            b.angularVelocity = Math.min(
-                Math.max(b.angularVel, -PhysicsScene.maxAngularVel),
-                PhysicsScene.maxAngularVel
-            );
-        }
+        // if (a.mass !== Infinity) {
+        //     a.angularVelocity = Math.min(
+        //         Math.max(a.angularVel, -PhysicsScene.maxAngularVel),
+        //         PhysicsScene.maxAngularVel
+        //     );
+        // }
+        // if (b.mass !== Infinity) {
+        //     b.angularVelocity = Math.min(
+        //         Math.max(b.angularVel, -PhysicsScene.maxAngularVel),
+        //         PhysicsScene.maxAngularVel
+        //     );
+        // }
 
         //avoid penetration
 

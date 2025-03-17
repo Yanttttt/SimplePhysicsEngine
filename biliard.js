@@ -10,12 +10,13 @@ PhysicsScene.init(undefined,new Vector2(0.0, -9.8));
 PhysicsScene.setThickWallCollision(1);
 
 function addBlock() {
-    var size = Math.random() * 0.2 + 0.1;
+    var size1 = Math.random() * 0.2 + 0.1;
+    var size2 = Math.random() * 0.2 + 0.1;
     var pos = new Vector2(Math.random() * PhysicsScene.worldSize.x, Math.random() * PhysicsScene.worldSize.y);
     var vel = new Vector2(Math.random() * 2 - 1, Math.random() * 2 - 1);
     var angularVel = Math.random() * 2 - 1;
 
-    var block = new Entity.Rectangle(size, size, 1, 0, undefined, pos, vel, 0, angularVel);
+    var block = new Entity.Rectangle(size1, size2, 1, 0, undefined, pos, vel, 0, angularVel);
 
     console.log(block);
     console.log('Block added');
@@ -149,6 +150,13 @@ document.getElementById("restitutionSlider").oninput = function () {
     for(let i=0;i<PhysicsScene.entities.length;i++)
     {
         PhysicsScene.entities[i].restitution = this.value / 10.0;
+    }
+};
+
+document.getElementById("frictionSlider").oninput = function () {
+    for(let i=0;i<PhysicsScene.entities.length;i++)
+    {
+        PhysicsScene.entities[i].friction = this.value/10;
     }
 };
 
