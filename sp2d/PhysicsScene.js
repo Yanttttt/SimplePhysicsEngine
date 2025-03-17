@@ -66,12 +66,13 @@ export function setDt(d) {
     dt = d;
 }
 
-export function setWallCollision(restitution = 0) {
+export function setWallCollision(restitution = 0, friction = 0) {
     var thickness = 0.5;
     var top = new Entity.Rectangle(
         simWidth,
         thickness,
         restitution,
+        friction,
         Infinity,
         new Vector2(simWidth / 2, simHeight + thickness / 2),
         //new Vector2(simWidth/2,simHeight),
@@ -87,6 +88,7 @@ export function setWallCollision(restitution = 0) {
         simWidth,
         thickness,
         restitution,
+        friction,
         Infinity,
         new Vector2(simWidth / 2, -thickness / 2),
         //new Vector2(simWidth/2,0),
@@ -102,6 +104,7 @@ export function setWallCollision(restitution = 0) {
         thickness,
         simHeight,
         restitution,
+        friction,
         Infinity,
         new Vector2(-thickness / 2, simHeight / 2),
         //new Vector2(0,simHeight/2),
@@ -117,6 +120,7 @@ export function setWallCollision(restitution = 0) {
         thickness,
         simHeight,
         restitution,
+        friction,
         Infinity,
         //new Vector2(simWidth,simHeight/2),
         new Vector2(simWidth + thickness / 2, simHeight / 2),
@@ -129,12 +133,13 @@ export function setWallCollision(restitution = 0) {
     addEntity(right);
 }
 
-export function setThickWallCollision(restitution = 0) {
+export function setThickWallCollision(restitution = 0,friction = 0) {
     var thickness = 0.5;
     var top = new Entity.Rectangle(
         simWidth,
         thickness,
         restitution,
+        friction,
         Infinity,
         //new Vector2(simWidth/2,simHeight+thickness/2),
         new Vector2(simWidth / 2, simHeight),
@@ -150,6 +155,7 @@ export function setThickWallCollision(restitution = 0) {
         simWidth,
         thickness,
         restitution,
+        friction,
         Infinity,
         //new Vector2(simWidth/2,-thickness/2),
         new Vector2(simWidth / 2, 0),
@@ -165,6 +171,7 @@ export function setThickWallCollision(restitution = 0) {
         thickness,
         simHeight,
         restitution,
+        friction,
         Infinity,
         //new Vector2(-thickness/2,simHeight/2),
         new Vector2(0, simHeight / 2),
@@ -180,6 +187,7 @@ export function setThickWallCollision(restitution = 0) {
         thickness,
         simHeight,
         restitution,
+        friction,
         Infinity,
         new Vector2(simWidth, simHeight / 2),
         // new Vector2(simWidth+thickness/2,simHeight/2),

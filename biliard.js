@@ -4,7 +4,7 @@ import * as PhysicsScene from "./sp2d/PhysicsScene.js";
 import * as Entity from "./sp2d/Entity.js";
 import * as Collision from "./sp2d/Collision.js";
 
-Draw.init("myCanvas");
+Draw.init("myCanvas",window.innerWidth-20,window.innerHeight-140,2);
 PhysicsScene.init(undefined,new Vector2(0.0, -9.8));
 //setWallCollision();
 PhysicsScene.setThickWallCollision(1);
@@ -15,7 +15,7 @@ function addBlock() {
     var vel = new Vector2(Math.random() * 2 - 1, Math.random() * 2 - 1);
     var angularVel = Math.random() * 2 - 1;
 
-    var block = new Entity.Rectangle(size, size, 1, 0, pos, vel, 0, angularVel);
+    var block = new Entity.Rectangle(size, size, 1, 0, undefined, pos, vel, 0, angularVel);
 
     console.log(block);
     console.log('Block added');
@@ -27,7 +27,7 @@ function addTriangle() {
 
     var pos = new Vector2(Math.random() * PhysicsScene.worldSize.x, Math.random() * PhysicsScene.worldSize.y);
 
-    console.log(pos);
+    //console.log(pos);
 
     var vertices=[];
     var p=[Math.random(),Math.random(),Math.random()];
@@ -50,7 +50,7 @@ function addTriangle() {
     var vel = new Vector2(Math.random() * 2 - 1, Math.random() * 2 - 1);
     var angularVel = Math.random() * 2 - 1;
 
-    var triangle = new Entity.Polygon(vertices, 1, 0, vel, 0, angularVel);
+    var triangle = new Entity.Polygon(vertices, 1, 0, undefined, vel, 0, angularVel);
 
     //console.log(triangle);
     //console.log(JSON.parse(JSON.stringify(triangle)));
@@ -73,7 +73,7 @@ function addBall() {
     var pos = new Vector2(Math.random() * PhysicsScene.worldSize.x, Math.random() * PhysicsScene.worldSize.y);
     var vel = new Vector2(Math.random() * 2 - 1, Math.random() * 2 - 1);
 
-    var ball = new Entity.Circle(size, undefined, undefined, pos, vel, "#CF0000");
+    var ball = new Entity.Circle(size, 1, 0, undefined, pos, vel, "#CF0000");
 
     PhysicsScene.addEntity(ball);
 }

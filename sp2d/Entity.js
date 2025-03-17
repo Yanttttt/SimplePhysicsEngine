@@ -6,6 +6,7 @@ export class Rectangle {
         width,
         length,
         restitution = 0,
+        friction=0,
         mass = 0,
         pos = VectorMath2.zero(),
         vel = VectorMath2.zero(),
@@ -20,6 +21,7 @@ export class Rectangle {
         this.width = width;
 
         this.restitution = restitution;
+        this.friction=friction;
 
         this.mass = mass;
         if (!mass) {
@@ -104,6 +106,7 @@ export class Polygon {
     constructor(
         vertices, // vertices must be counterclockwise
         restitution = 0,
+        friction=0,
         mass = 0,
         vel = VectorMath2.zero(),
         angle = 0,
@@ -117,7 +120,7 @@ export class Polygon {
 
         this.pos = Polygon.computeCentroid(vertices);
         //console.log(Polygon.computeCentroid(vertices));
-        console.log(this.pos);
+        //console.log(this.pos);
         
         this.vertices = vertices.map(v => new Vector2(v.x, v.y));
         //shallow copy
@@ -133,6 +136,7 @@ export class Polygon {
         this.angle = angle;
         this.angularVel = angularVel;
         this.restitution = restitution;
+        this.friction=friction;
 
         if (!mass) {
             this.mass = Polygon.computeArea(vertices);;
@@ -179,7 +183,7 @@ export class Polygon {
 
         // console.log("res", 1 / vertices.length);
         var res=sumv.times(1/vertices.length).clone();
-        console.log(res);
+        //console.log(res);
         return res;
 
         //cetroid is the average of vertices.
@@ -220,7 +224,8 @@ export class Polygon {
 export class Circle {
     constructor(
         radius,
-        restitution = 1,
+        restitution = 0,
+        friction=0,
         mass = null,
         pos = VectorMath2.zero(),
         vel = VectorMath2.zero(),
@@ -229,6 +234,7 @@ export class Circle {
         this.id = null;
         this.radius = radius
         this.restitution = restitution;
+        this.friction=friction;
         if (!mass)
             this.mass = Math.PI * radius ** 2;
         this.massInv = 1 / this.mass;
