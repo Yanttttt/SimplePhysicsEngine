@@ -7,7 +7,7 @@ import * as Collision from "./sp2d/Collision.js";
 Draw.init("myCanvas");
 PhysicsScene.init(undefined,new Vector2(0.0, 0));
 //setWallCollision();
-PhysicsScene.setWallCollision(1);
+PhysicsScene.setThickWallCollision(1);
 
 function addBlock() {
     var size = Math.random() * 0.2 + 0.1;
@@ -21,8 +21,52 @@ function addBlock() {
     console.log('Block added');
     PhysicsScene.addEntity(block);
 }
-
 window.addBlock = addBlock;
+
+function addTriangle() {
+
+    var pos = new Vector2(Math.random() * PhysicsScene.worldSize.x, Math.random() * PhysicsScene.worldSize.y);
+
+    console.log(pos);
+
+    var vertices=[];
+    var p=[Math.random(),Math.random(),Math.random()];
+    var tp=p[0]+p[1]+p[2];
+
+    var angle=0;
+
+    for(let i=0;i<3;i++)
+    {
+        let radius=Math.random() * 0.1 + 0.1;
+        angle+=2*Math.PI*p[i]/tp;
+        vertices.push(pos.add(new Vector2(
+                Math.cos(angle)*radius,
+                Math.sin(angle)*radius
+            )));
+    }
+
+    console.log(vertices);
+
+    var vel = new Vector2(Math.random() * 2 - 1, Math.random() * 2 - 1);
+    var angularVel = Math.random() * 2 - 1;
+
+    var triangle = new Entity.Polygon(vertices, 1, 0, vel, 0, angularVel);
+
+    //console.log(triangle);
+    //console.log(JSON.parse(JSON.stringify(triangle)));
+    // console.log("mass:",triangle.mass);
+    // //console.log(triangle.localVertices);
+    // console.log("vertices",triangle.vertices);
+    console.log("pos",triangle.pos);
+    console.log('Triangle added');
+
+    console.log(triangle);
+
+    PhysicsScene.addEntity(triangle);
+    // error;
+    console.log(PhysicsScene.entities);
+}
+window.addTriangle = addTriangle;
 
 function addBall() {
     var size = (Math.random() * 0.2 + 0.1)/2;
@@ -116,12 +160,13 @@ function updateFrame() {
     PhysicsScene.draw();
     for(let e of PhysicsScene.entities)
     {
-        if(e.type === "Rectangle") {
+        if(e.type === "Rectangle"||e.type === "Polygon") {
             let v = e.getVertices();
             for(let i of v) {
                 Draw.drawCircle(i,0.01, "#FF0000");
             }
         }
+        Draw.drawCircle(e.pos,0.01, "#FF00FF");
     }
     for(let c of PhysicsScene.collisions)
     {

@@ -73,6 +73,25 @@ export function drawCircle(pos,radius,colour)
     ctx.fill();
 }
 
+export function drawPolygon(vertices, colour = "#FF0000") {
+    if (!vertices || vertices.length < 3) return;
+    // at least need 3 vertices.
+
+    ctx.fillStyle = colour;
+    ctx.beginPath();
+
+    var v0 = vertices[0];
+    ctx.moveTo(convertX(v0), convertY(v0));
+
+    for (let i = 1; i < vertices.length; i++) {
+        let v = vertices[i];
+        ctx.lineTo(convertX(v),convertY(v));
+    }
+
+    ctx.closePath();
+    ctx.fill();
+}
+
 export function clear()
 {
     ctx.clearRect(0, 0, canvas.width, canvas.height);

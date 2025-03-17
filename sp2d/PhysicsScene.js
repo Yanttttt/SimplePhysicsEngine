@@ -24,7 +24,7 @@ export function init(worldSize_ = null, gravity_ = new Vector2(0.0, -9.8), maxAn
     worldSize = worldSize_;
     maxAngularVel = maxAngularVel_;
 
-    paused=false;
+    paused = false;
 
     entities = [];
     collisions = [];
@@ -41,7 +41,7 @@ export function init(worldSize_ = null, gravity_ = new Vector2(0.0, -9.8), maxAn
 export function addEntity(entity) {
     entity.id = entities.length;
     entities.push(entity);
-    return entity.id; 
+    return entity.id;
     // Passing by reference, id has been changed. 
     // But it may make some convenience.
 }
@@ -66,14 +66,14 @@ export function setDt(d) {
     dt = d;
 }
 
-export function setWallCollision(restitution=0) {
-    var thickness=0.5;
-    var top=new Entity.Rectangle(
+export function setWallCollision(restitution = 0) {
+    var thickness = 0.5;
+    var top = new Entity.Rectangle(
         simWidth,
         thickness,
         restitution,
         Infinity,
-        new Vector2(simWidth/2,simHeight+thickness/2),
+        new Vector2(simWidth / 2, simHeight + thickness / 2),
         //new Vector2(simWidth/2,simHeight),
         VectorMath2.zero(),
         0,
@@ -83,12 +83,12 @@ export function setWallCollision(restitution=0) {
     top.setStatic();
     addEntity(top);
 
-    var bottom=new Entity.Rectangle(
+    var bottom = new Entity.Rectangle(
         simWidth,
         thickness,
         restitution,
         Infinity,
-        new Vector2(simWidth/2,-thickness/2),
+        new Vector2(simWidth / 2, -thickness / 2),
         //new Vector2(simWidth/2,0),
         VectorMath2.zero(),
         0,
@@ -98,12 +98,12 @@ export function setWallCollision(restitution=0) {
     bottom.setStatic();
     addEntity(bottom);
 
-    var left=new Entity.Rectangle(
+    var left = new Entity.Rectangle(
         thickness,
         simHeight,
         restitution,
         Infinity,
-        new Vector2(-thickness/2,simHeight/2),
+        new Vector2(-thickness / 2, simHeight / 2),
         //new Vector2(0,simHeight/2),
         VectorMath2.zero(),
         0,
@@ -113,13 +113,13 @@ export function setWallCollision(restitution=0) {
     left.setStatic();
     addEntity(left);
 
-    var right=new Entity.Rectangle(
+    var right = new Entity.Rectangle(
         thickness,
         simHeight,
         restitution,
         Infinity,
         //new Vector2(simWidth,simHeight/2),
-        new Vector2(simWidth+thickness/2,simHeight/2),
+        new Vector2(simWidth + thickness / 2, simHeight / 2),
         VectorMath2.zero(),
         0,
         0,
@@ -129,15 +129,15 @@ export function setWallCollision(restitution=0) {
     addEntity(right);
 }
 
-export function setThickWallCollision(restitution=0) {
-    var thickness=0.5;
-    var top=new Entity.Rectangle(
+export function setThickWallCollision(restitution = 0) {
+    var thickness = 0.5;
+    var top = new Entity.Rectangle(
         simWidth,
         thickness,
         restitution,
         Infinity,
         //new Vector2(simWidth/2,simHeight+thickness/2),
-        new Vector2(simWidth/2,simHeight),
+        new Vector2(simWidth / 2, simHeight),
         VectorMath2.zero(),
         0,
         0,
@@ -146,13 +146,13 @@ export function setThickWallCollision(restitution=0) {
     top.setStatic();
     addEntity(top);
 
-    var bottom=new Entity.Rectangle(
+    var bottom = new Entity.Rectangle(
         simWidth,
         thickness,
         restitution,
         Infinity,
         //new Vector2(simWidth/2,-thickness/2),
-        new Vector2(simWidth/2,0),
+        new Vector2(simWidth / 2, 0),
         VectorMath2.zero(),
         0,
         0,
@@ -161,13 +161,13 @@ export function setThickWallCollision(restitution=0) {
     bottom.setStatic();
     addEntity(bottom);
 
-    var left=new Entity.Rectangle(
+    var left = new Entity.Rectangle(
         thickness,
         simHeight,
         restitution,
         Infinity,
         //new Vector2(-thickness/2,simHeight/2),
-        new Vector2(0,simHeight/2),
+        new Vector2(0, simHeight / 2),
         VectorMath2.zero(),
         0,
         0,
@@ -176,12 +176,12 @@ export function setThickWallCollision(restitution=0) {
     left.setStatic();
     addEntity(left);
 
-    var right=new Entity.Rectangle(
+    var right = new Entity.Rectangle(
         thickness,
         simHeight,
         restitution,
         Infinity,
-        new Vector2(simWidth,simHeight/2),
+        new Vector2(simWidth, simHeight / 2),
         // new Vector2(simWidth+thickness/2,simHeight/2),
         VectorMath2.zero(),
         0,
@@ -192,23 +192,23 @@ export function setThickWallCollision(restitution=0) {
     addEntity(right);
 }
 
-export function simulate(substep=1) {
+export function simulate(substep = 1) {
     if (paused) return;
 
     collisions = [];
 
     // substep indicates how many times we simulate in 1 frame.
-    for(let k=0;k<substep;k++)
-    {
+    for (let k = 0; k < substep; k++) {
         for (let i = 0; i < entities.length; i++) {
-            var p=entities[i].pos.clone();
-            if((p.x>2*simWidth||p.x<-simWidth)&&(p.y<-simHeight||p.y>2*simHeight)) continue;
-            entities[i].simulate(dt/substep,gravity);
+            //console.log(entities[i].pos);
+            var p = entities[i].pos.clone();
+            if ((p.x > 2 * simWidth || p.x < -simWidth) && (p.y < -simHeight || p.y > 2 * simHeight)) continue;
+            entities[i].simulate(dt / substep, gravity);
         }
-    
+
         for (let i = 0; i < entities.length; i++) {
             for (let j = i + 1; j < entities.length; j++) {
-                var collision = Collision.detect(entities[i],entities[j]);
+                var collision = Collision.detect(entities[i], entities[j]);
                 if (collision != null) {
                     //console.log(collision);
                     //error;
@@ -216,7 +216,7 @@ export function simulate(substep=1) {
                 }
             }
         }
-    
+
         for (let i = 0; i < collisions.length; i++) {
             collisions[i].resolve();
         }
@@ -225,12 +225,7 @@ export function simulate(substep=1) {
 
 export function draw() {
     Draw.clear();
-
     for (let i = 0; i < entities.length; i++) {
-        if (entities[i].type == "Rectangle") {
-            Draw.drawRectangle(entities[i].pos,entities[i].angle,entities[i].width,entities[i].length,entities[i].colour);
-        } else if (entities[i].type == "Circle") {
-            Draw.drawCircle(entities[i].pos,entities[i].radius,entities[i].colour);
-        }
+        entities[i].draw();
     }
 }

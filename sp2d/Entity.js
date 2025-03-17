@@ -1,4 +1,5 @@
 import { Vector2, VectorMath2 } from "./Vector2.js";
+import * as Draw from "./Draw.js";
 
 export class Rectangle {
     constructor(
@@ -60,6 +61,11 @@ export class Rectangle {
         this.vertices = this.getVertices();
     }
 
+    draw()
+    {
+        Draw.drawRectangle(this.pos,this.angle,this.width,this.length,this.colour);
+    }
+
     getVertices() {
         var halfWidth = this.width / 2;
         var halfLength = this.length / 2;
@@ -96,77 +102,121 @@ export class Polygon {
      * @param {Vector2[]} vertices 
      */
     constructor(
-        vertices = [],
+        vertices, // vertices must be counterclockwise
         restitution = 0,
         mass = 0,
         vel = VectorMath2.zero(),
         angle = 0,
         angularVel = 0,
-        colour = "#007F00"
+        colour = "#00007F"
     ) {
         this.id = null;
+        
         this.type = "Polygon";
         this.colour = colour;
 
-        this.verticesLocal = vertices.map(v => new Vector2(v.x, v.y));
-        // Shallow copy. Avoid modifying original arr
-
         this.pos = Polygon.computeCentroid(vertices);
+        //console.log(Polygon.computeCentroid(vertices));
+        console.log(this.pos);
+        
+        this.vertices=[];
+        for(let i=0;i<vertices.length;i++)
+        {
+            this.vertices.push(vertices[i].clone());
+        }
+
+        // Draw.drawPolygon(this.vertices,this.colour);
+        // for(let i of this.vertices) {
+        //     Draw.drawCircle(i,0.01, "#FF0000");
+        // }
+
+        this.localVertices = [];
+        for(let i=0;i<vertices.length;i++)
+        {
+            this.localVertices.push(vertices[i].subtract(this.pos));
+        }
+
         this.vel = vel.clone();
         this.angle = angle;
         this.angularVel = angularVel;
         this.restitution = restitution;
 
         if (!mass) {
-            this.mass = Polygon.computeMass(vertices);
+            this.mass = Polygon.computeArea(vertices);;
         } else {
             this.mass = mass;
         }
 
         this.massInv = 1 / this.mass;
         this.inertia = Polygon.computeInertia(vertices, this.mass, this.pos);
+        //console.log(this.pos);
         this.inertiaInv = 1 / this.inertia;
+        //console.log(this.pos);
+
+        // Draw.drawPolygon(this.vertices,this.colour);
+        // Draw.drawCircle(this.pos,0.01,"#FF0000");
+        // error;
+    }
+
+    simulate(dt, gravity) {
+        // console.log(gravity,dt);
+        // console.log(this.width,this.length);
+        this.vel.addEqual(gravity, dt);
+        if (this.mass === Infinity) this.vel = VectorMath2.zero();
+        this.pos.addEqual(this.vel, dt);
+        this.angle += this.angularVel * dt;
         this.vertices = this.getVertices();
     }
 
-    static computeCentroid(vertices) {
-        var sumX = 0, sumY = 0;
-        vertices.forEach(v => {
-            sumX += v.x;
-            sumY += v.y;
-        });
-        return new Vector2(sumX / vertices.length, sumY / vertices.length);
+    draw()
+    {
+        Draw.drawPolygon(this.vertices,this.colour);
     }
 
-    static computeMass(vertices) {
-        return Math.abs(Polygon.computeArea(vertices));
+    static computeCentroid(vertices) {
+        var sumv=VectorMath2.zero();
+        for(let v of vertices)
+        {
+            sumv.addEqual(v);
+        }
+        // console.log("sumv:", sumv);
+        // console.log("vertices.length:", vertices.length);
+        // console.log("1 / vertices.length:", 1 / vertices.length);
+
+        // console.log("res", 1 / vertices.length);
+        var res=sumv.times(1/vertices.length).clone();
+        console.log(res);
+        return res;
+
+        //cetroid is the average of vertices.
     }
 
     static computeArea(vertices) {
         var area = 0;
         for (let i = 0; i < vertices.length; i++) {
             let j = (i + 1) % vertices.length;
-            area += vertices[i].x * vertices[j].y - vertices[j].x * vertices[i].y;
+            area += vertices[i].cross(vertices[j]);
+            //console.log(vertices[i].cross(vertices[j]));
         }
-        return area / 2;
+        return Math.abs(area / 2);
     }
 
     static computeInertia(vertices, mass, centroid) {
         var inertia = 0;
         for (let i = 0; i < vertices.length; i++) {
             let j = (i + 1) % vertices.length;
-            let p1 = vertices[i].sub(centroid);
-            let p2 = vertices[j].sub(centroid);
-            let cross = Math.abs(p1.x * p2.y - p2.x * p1.y);
+            let p1 = vertices[i].subtract(centroid);
+            let p2 = vertices[j].subtract(centroid);
+            let cross = Math.abs(p1.cross(p2));
             inertia += (p1.dot(p1) + p1.dot(p2) + p2.dot(p2)) * cross;
         }
         return (mass * inertia) / 6;
     }
 
     getVertices() {
-        let cosA = Math.cos(this.angle);
-        let sinA = Math.sin(this.angle);
-        return this.verticesLocal.map(v => new Vector2(
+        var cosA = Math.cos(this.angle);
+        var sinA = Math.sin(this.angle);
+        return this.localVertices.map(v => new Vector2(
             this.pos.x + v.x * cosA - v.y * sinA,
             this.pos.y + v.x * sinA + v.y * cosA
         ));
@@ -206,5 +256,10 @@ export class Circle {
     simulate(dt, gravity) {
         this.vel.addEqual(gravity.times(dt));
         this.pos.addEqual(this.vel.times(dt));
+    }
+
+    draw()
+    {
+        Draw.drawCircle(this.pos,this.radius,this.colour);
     }
 }

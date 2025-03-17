@@ -21,18 +21,20 @@ export class Collision {
 
     resolve() {
         var corrFactor = 0.6;
+        // change corrFactor here
         if (this.entity1.type === "Circle" && this.entity2.type === "Circle") {
             this.resolveCircles(corrFactor);
         }
-        if (this.entity1.type === "Rectangle" && this.entity2.type === "Rectangle") {
-            this.resolveRectangles(corrFactor);
+        if ((this.entity1.type === "Rectangle" || this.entity1.type === "Polygon")
+            && (this.entity2.type === "Rectangle" || this.entity2.type === "Polygon")) {
+            this.resolvePolygons(corrFactor);
         }
         if (this.entity1.type === "Circle" && this.entity2.type === "Rectangle") {
             this.resolveCircleRectangle(corrFactor);
         }
     }
 
-    resolveRectangles(corrFactor = 0.8) {
+    resolvePolygons(corrFactor = 0.8) {
         var a = this.entity1;
         var b = this.entity2;
         var normal = this.normal.clone();
@@ -306,8 +308,12 @@ export function detect(entity1, entity2) {
     if (entity1.type === "Circle" && entity2.type === "Circle") {
         return detectCircles(entity1, entity2);
     }
-    if (entity1.type === "Rectangle" && entity2.type === "Rectangle") {
-        return detectRectangles(entity1, entity2);
+    if (
+        (entity1.type === "Rectangle" || entity1.type === "Polygon") && 
+        (entity2.type === "Rectangle" || entity1.type === "Polygon")
+    ) {
+        //console.log("polygons!");
+        return detectPolygons(entity1, entity2);
     }
     if ((entity1.type === "Circle" && entity2.type === "Rectangle")) {
         return detectCircleRectangle(entity1, entity2);
@@ -355,7 +361,7 @@ export function detectCircleRectangle(c, r) {
         let edge = VectorMath2.subtract(vb, va);
         axis = edge.perpendicular().normalise();
 
-        var projA = projectVertices(r, axis);
+        var projA = projectVertices(r.vertices, axis);
         var projB = projectCircle(c, axis);
 
         if (projA.min >= projB.max || projB.min >= projA.max) {
@@ -388,7 +394,7 @@ export function detectCircleRectangle(c, r) {
     //That distance vector is actually another axis to detect.
 
     axis = VectorMath2.subtract(nearest, c.pos).normalise();
-    projA = projectVertices(r, axis);
+    projA = projectVertices(r.vertices, axis);
     projB = projectCircle(c, axis);
 
     if (projA.min >= projB.max || projB.min >= projA.max) {
@@ -438,15 +444,14 @@ export function detectRectangles(b1, b2) {
             let vb = ra.vertices[(i + 1) % 4];
 
             //console.log("ra", ra);
-            Draw.drawRectangle(ra.pos, ra.angle, ra.width, ra.length, ra.colour);
 
             let edge = vb.subtract(va);
             let axis = edge.perpendicular().normalise();
 
             // get a seperating axis, pointing inward.
 
-            let projA = projectVertices(ra, axis);
-            let projB = projectVertices(rb, axis);
+            let projA = projectVertices(ra.vertices, axis);
+            let projB = projectVertices(rb.vertices, axis);
 
             if (projA.min >= projB.max || projB.min >= projA.max) {
                 return false;
@@ -467,9 +472,7 @@ export function detectRectangles(b1, b2) {
 
     // Based on Seperating Axis Theorem
     // Only work for convex shapes
-    // I will put it as a linear time algorithm
-    // Since it only depends on the number of edges
-    // In O(n^2) time
+    // O(edge^2) time
 
     if (!checkCollision(b1, b2) || !checkCollision(b2, b1)) return null;
 
@@ -489,14 +492,14 @@ export function detectRectangles(b1, b2) {
     //var contactPointA,contactPointB;
     var contactPoint = b1.pos.clone();
 
-    var eps=Math.min(b1.width+b1.length,b2.width+b2.length)/10000000;
+    var eps = Math.min(b1.width + b1.length, b2.width + b2.length) / 10000000;
 
     for (let v of b1.vertices) {
-        let diff=v.dot(normal) - contactPoint.dot(normal);
-        
-        if (diff>=-eps) {
+        let diff = v.dot(normal) - contactPoint.dot(normal);
+
+        if (diff >= -eps) {
             //console.log(v.dot(normal),contactPoint.dot(normal));
-            if (diff>eps) {
+            if (diff > eps) {
                 contactPoints1 = [];
             }
             contactPoint = v.clone();
@@ -507,11 +510,11 @@ export function detectRectangles(b1, b2) {
     contactPoint = b2.pos.clone();
     normal.timesEqual(-1);
     for (let v of b2.vertices) {
-        let diff=v.dot(normal) - contactPoint.dot(normal);
+        let diff = v.dot(normal) - contactPoint.dot(normal);
 
-        if (diff>=-eps) {
+        if (diff >= -eps) {
             //console.log(v.dot(normal),contactPoint.dot(normal));
-            if (diff>eps) {
+            if (diff > eps) {
                 contactPoints2 = [];
             }
             contactPoint = v.clone();
@@ -580,50 +583,16 @@ export function detectRectangles(b1, b2) {
             }
         }
 
-        Draw.drawCircle(max2v, 0.01, "#0000FF");
-        Draw.drawCircle(min2v, 0.01, "#0000FF");
-        Draw.drawCircle(max1v, 0.01, "#00FFFF");
-        Draw.drawCircle(min1v, 0.01, "#00FFFF");
-
-
-        // if(max2-min1<max1-min2 &&
-        //     max2-min1<max1-min1 && 
-        //     max2-min1<max2-min2)
-        // {
-        //     contactPoint=VectorMath2.add(max2v,min1v).times(1/2);
-        //     Draw.drawCircle(max2v,0.01, "#0000FF");
-        //     Draw.drawCircle(min1v,0.01, "#0000FF");
-        // }
-        // else(max2-min1<max1-min2 &&
-        //     max2-min1<max1-min1 && 
-        //     max2-min1<max2-min2)
-        // {
-        //     contactPoint=VectorMath2.add(max1v,min2v).times(1/2);
-        //     Draw.drawCircle(max1v,0.01, "#0000FF");
-        //     Draw.drawCircle(min2v,0.01, "#0000FF");
-        // }
-        // else(max2-min1<max1-min2 &&
-        //     max2-min1<max1-min1 && 
-        //     max2-min1<max2-min2)
-        // {
-        //     contactPoint=VectorMath2.add(max1v,min2v).times(1/2);
-        //     Draw.drawCircle(max1v,0.01, "#0000FF");
-        //     Draw.drawCircle(min2v,0.01, "#0000FF");
-        // }
-        // else(max2-min1<max1-min2 &&
-        //     max2-min1<max1-min1 && 
-        //     max2-min1<max2-min2)
-        // {
-        //     contactPoint=VectorMath2.add(max1v,min2v).times(1/2);
-        //     Draw.drawCircle(max1v,0.01, "#0000FF");
-        //     Draw.drawCircle(min2v,0.01, "#0000FF");
-        // }
+        // Draw.drawCircle(max2v, 0.01, "#0000FF");
+        // Draw.drawCircle(min2v, 0.01, "#0000FF");
+        // Draw.drawCircle(max1v, 0.01, "#00FFFF");
+        // Draw.drawCircle(min1v, 0.01, "#00FFFF");
 
     }
     //Average contact point
 
-    Draw.drawCircle(contactPoint, 0.01, "#FFFF00");
-    Draw.drawCircle(contactPoint.add(normal).times(0.1), 0.01, "FF0000");
+    // Draw.drawCircle(contactPoint, 0.01, "#FFFF00");
+    // Draw.drawCircle(contactPoint.add(normal).times(0.1), 0.01, "FF0000");
 
     // if (normal.length() === 0) {
     //     console.error("Normal is zero");
@@ -640,14 +609,197 @@ export function detectRectangles(b1, b2) {
     );
 }
 
+export function detectPolygons(p1, p2) {
+    if (p1.mass === Infinity && p2.mass === Infinity) {
+        return;
+    }
+
+    console.log("polygons!",p1,p2);
+
+    //console.log(p1,p2);
+
+    var normal = new Vector2(0, 0);
+    var depth = Number.MAX_VALUE;
+
+    function checkCollision(pa, pb) {
+        for (let i = 0; i < pa.vertices.length; i++) {
+            let va = pa.vertices[i];
+            let vb = pa.vertices[(i + 1) % 4];
+
+            //console.log("ra", ra);
+
+            let edge = vb.subtract(va);
+            let axis = edge.perpendicular().normalise();
+
+            // get a seperating axis, pointing inward.
+
+            let projA = projectVertices(pa.vertices, axis);
+            let projB = projectVertices(pb.vertices, axis);
+
+            if (projA.min >= projB.max || projB.min >= projA.max) {
+                return false;
+                // one axis can seperate 2 objects, no collision, return.
+            }
+
+            let overlap = Math.min(projA.max - projB.min, projB.max - projA.min);
+
+            //console.log(depth,overlap);
+            if (overlap < depth) {
+                depth = overlap; // penetration is the minimum overlap
+                normal = axis.clone();
+                //console.log(normal);
+            }
+        }
+        return true;
+    }
+
+    // Based on Seperating Axis Theorem
+    // Only work for convex shapes
+    // O(edge^2) time
+
+    if (!checkCollision(p1, p2) || !checkCollision(p2, p1)) return null;
+
+    //if(normal.x==0&&normal.y==0) return null;
+
+    var dir = p2.pos.subtract(p1.pos);
+    if (dir.dot(normal) < 0) normal = normal.times(-1);
+
+    // if (normal.length() === 0) {
+    //     console.error("Normal is zero before final adjustment");
+    //     error;
+    //     return null;
+    // }
+
+    var contactPoints1 = [];
+    var contactPoints2 = [];
+    //var contactPointA,contactPointB;
+    var contactPoint = p1.pos.clone();
+
+    var eps = Math.min(p1.width + p1.length, p2.width + p2.length) / 10000000;
+
+    for (let v of p1.vertices) {
+        let diff = v.dot(normal) - contactPoint.dot(normal);
+
+        if (diff >= -eps) {
+            //console.log(v.dot(normal),contactPoint.dot(normal));
+            if (diff > eps) {
+                contactPoints1 = [];
+            }
+            contactPoint = v.clone();
+            contactPoints1.push(contactPoint);
+        }
+    }
+
+    contactPoint = p2.pos.clone();
+    normal.timesEqual(-1);
+    for (let v of p2.vertices) {
+        let diff = v.dot(normal) - contactPoint.dot(normal);
+
+        if (diff >= -eps) {
+            //console.log(v.dot(normal),contactPoint.dot(normal));
+            if (diff > eps) {
+                contactPoints2 = [];
+            }
+            contactPoint = v.clone();
+            contactPoints2.push(contactPoint);
+        }
+    }
+
+    normal.timesEqual(-1);
+    contactPoint = VectorMath2.zero();
+
+    if (contactPoints1.length == 1) {
+        contactPoint = contactPoints1[0];
+    }
+    else if (contactPoints2.length == 1) {
+        contactPoint = contactPoints2[0];
+    }
+    else {
+        // console.log(normal, contactPoints1.length, contactPoints2.length);
+
+        var min1 = Number.MAX_VALUE;
+        var min1v;
+        var max1 = -Number.MAX_VALUE;
+        var max1v;
+
+        for (let c of contactPoints1) {
+            let proj = c.dot(normal.perpendicular());
+            if (proj < min1) {
+                min1 = proj;
+                min1v = c;
+            }
+            if (proj > max1) {
+                max1 = proj;
+                max1v = c;
+            }
+        }
+
+        var min2 = Number.MAX_VALUE;
+        var min2v;
+        var max2 = -Number.MAX_VALUE;
+        var max2v;
+        for (let c of contactPoints2) {
+            let proj = c.dot(normal.perpendicular());
+            if (proj < min2) {
+                min2 = proj;
+                min2v = c;
+            }
+            if (proj > max2) {
+                max2 = proj;
+                max2v = c;
+            }
+        }
+
+        var contactLine = [max2 - min1, max1 - min2, max1 - min1, max2 - min2];
+        var contactPoints = [
+            VectorMath2.add(max2v, min1v).times(1 / 2),
+            VectorMath2.add(max1v, min2v).times(1 / 2),
+            VectorMath2.add(max1v, min1v).times(1 / 2),
+            VectorMath2.add(max2v, min2v).times(1 / 2),
+        ];
+
+        var minCL = Number.MAX_VALUE;
+        for (let i = 0; i < contactLine.length; i++) {
+            if (contactLine[i] < minCL) {
+                minCL = contactLine[i];
+                contactPoint = contactPoints[i];
+            }
+        }
+
+        // Draw.drawCircle(max2v, 0.01, "#0000FF");
+        // Draw.drawCircle(min2v, 0.01, "#0000FF");
+        // Draw.drawCircle(max1v, 0.01, "#00FFFF");
+        // Draw.drawCircle(min1v, 0.01, "#00FFFF");
+
+    }
+    //Average contact point
+
+    Draw.drawCircle(contactPoint, 0.01, "#FFFF00");
+    Draw.drawCircle(contactPoint.add(normal).times(0.1), 0.01, "FF0000");
+
+    // if (normal.length() === 0) {
+    //     console.error("Normal is zero");
+    //     error;
+    //     return null;
+    // }
+
+    return new Collision(
+        p1,
+        p2,
+        normal,
+        depth,
+        contactPoint
+    );
+}
+
 /**
- * @param {Entity.Rectangle} b
+ * @param {Vector2[]} vertices
  * @param {Vector2} axis
  */
-function projectVertices(b, axis) {
+function projectVertices(vertices, axis) {
     var min = Number.MAX_VALUE;
     var max = -Number.MAX_VALUE;
-    for (let v of b.vertices) {
+    for (let v of vertices) {
         let proj = v.dot(axis);
         min = Math.min(min, proj);
         max = Math.max(max, proj);
