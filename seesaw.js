@@ -6,16 +6,14 @@ import * as Collision from "./sp2d/Collision.js";
 
 var div = 2;
 
-function setupScene()
-{
-    Draw.init("myCanvas",Math.min(window.innerWidth-20,window.innerHeight-20),Math.min(window.innerWidth-20,window.innerHeight-20),2);
-    PhysicsScene.init(undefined,new Vector2(0.0, -9.8),0.1);
+function setupScene() {
+    Draw.init("myCanvas", Math.min(window.innerWidth - 20, window.innerHeight - 20), Math.min(window.innerWidth - 20, window.innerHeight - 20), 2);
+    PhysicsScene.init(undefined, new Vector2(0.0, -9.8), 0.1);
     PhysicsScene.setFloorCollision(0.1, 0.1);
 }
 window.setupScene = setupScene;
 
-function buildSeesaw()
-{
+function buildSeesaw() {
     var ver = [
         new Vector2(1 - 0.1, 0),
         new Vector2(1 + 0.1, 0),
@@ -35,65 +33,63 @@ function buildSeesaw()
     PhysicsScene.addEntity(board);
 }
 
-function layBlocks()
-{
+function layBlocks() {
     var level = 0.17 + 0.02;
     var s = 0.4;
     var n = 5, m = 3;
     var size = 0.1;
-    for (let i = 0; i < 5; i++)
-    {
-        for (let j = 0; j < m; j++)
-        {
-            let pos = new Vector2(s + i * size, level + j * size);
-            let block = new Entity.Rectangle(size, size, 0.1, 0.1, undefined, pos, VectorMath2.zero(), 0, 0, "#3F3FFF");
+    for (let i = 0; i < 5; i++) {
+        for (let j = 0; j < m; j++) {
+            let pos = new Vector2(s + size/2+ i * size, level + size/2 + j * size);
+            let block = new Entity.Rectangle(size, size, 0.1, 0.2, undefined, pos, VectorMath2.zero(), 0, 0, "#3F3FFF");
             PhysicsScene.addEntity(block);
         }
     }
 
-    // //right hand side
-    // var level = 0.17 + 0.02;
-    // var s = 1.25;
-    // var n = 5, m = 3;
-    // var size = 0.1;
-    // for (let i = 0; i < 5; i++)
-    // {
-    //     for (let j = 0; j < m; j++)
-    //     {
-    //         let pos = new Vector2(s + i * size, level + j * size);
-    //         let block = new Entity.Rectangle(size, size, 0.1, 0.1, undefined, pos, VectorMath2.zero(), 0, 0, "#3F3FFF");
+    //right hand side
+    level = 0.17 + 0.02;
+    s = 1.1;
+    n = 4, m = 3;
+    size = 0.1;
+    for (let i = 0; i < n; i++)
+    {
+        for (let j = 0; j < m; j++)
+        {
+            let pos = new Vector2(s + size/2+ i * size, level + size/2 + j * size);
+            let block = new Entity.Rectangle(size, size, 0.1, 0.2, undefined, pos, VectorMath2.zero(), 0, 0, "#3F3FFF");
+            PhysicsScene.addEntity(block);
+        }
+    }
+
+    // let block = new Entity.Rectangle(0.2, 0.4, 0.1, 0.1, undefined, new Vector2(1.5, level + 0.2), VectorMath2.zero(), 0, 0, "#3F3FFF");
     //         PhysicsScene.addEntity(block);
-    //     }
-    // }
-    var ball = new Entity.Circle(0.2, 0, 0.1, undefined, new Vector2(1.5, 5), VectorMath2.zero(), 0, 0, "#3F3F3F");
+
+    var ball = new Entity.Circle(0.2, 0, 0.1, undefined, new Vector2(1.7, 20), new Vector2(0, 0), 0, 0, "#3F3F3F");
     PhysicsScene.addEntity(ball);
 }
 
 function updateFrame() {
     //console.log(PhysicsScene.entities);
-    PhysicsScene.simulate(4);
+    PhysicsScene.simulate(10);
     PhysicsScene.draw();
-    for(let e of PhysicsScene.entities)
-    {
-        if(e.type === "Rectangle"||e.type === "Polygon") {
+    for (let e of PhysicsScene.entities) {
+        if (e.type === "Rectangle" || e.type === "Polygon") {
             let v = e.getVertices();
-            for(let i of v) {
-                Draw.drawCircle(i,0.007, "#FF0000");
+            for (let i of v) {
+                Draw.drawCircle(i, 0.007, "#FF0000");
             }
         }
-        if (e.type === "Circle")
-        {
+        if (e.type === "Circle") {
             let x = Math.cos(e.angle);
             let y = Math.sin(e.angle);
             //console.log(e.angle);
-            Draw.drawCircle((new Vector2(x,y)).times(e.radius).add(e.pos),0.007, "#0000FF");
+            Draw.drawCircle((new Vector2(x, y)).times(e.radius).add(e.pos), 0.007, "#0000FF");
         }
-        Draw.drawCircle(e.pos,0.007, "#FF00FF");
+        Draw.drawCircle(e.pos, 0.007, "#FF00FF");
     }
-    for(let c of PhysicsScene.collisions)
-    {
-        Draw.drawCircle(c.contactPoint,0.007, "#FFFF00");
-    }
+    // for (let c of PhysicsScene.collisions) {
+    //     Draw.drawCircle(c.contactPoint, 0.007, "#FFFF00");
+    // }
     requestAnimationFrame(updateFrame); //recursive call, default 60Hz
 }
 

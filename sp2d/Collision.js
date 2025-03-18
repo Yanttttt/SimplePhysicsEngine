@@ -19,8 +19,8 @@ export class Collision {
         this.contactPoint = contactPoint;
     }
 
-    resolve(corrFactor = 0.8) {
-        var corrFactor = 0.3;
+    resolve() {
+        var corrFactor = 0.2;
         // change corrFactor here
 
         var a = this.entity1;
@@ -123,6 +123,7 @@ export class Collision {
         // }
 
         //avoid penetration
+        //if (depth < 0.0005) depth = 0;
 
         var totalMassInv = (a.mass !== Infinity ? a.massInv : 0) + (b.mass !== Infinity ? b.massInv : 0);
         if (totalMassInv > 0) {
@@ -412,6 +413,10 @@ export function detectPolygons(p1, p2) {
         //console.log(max2v);
 
         var contactLine = [max2 - min1, max1 - min2, max1 - min1, max2 - min2];
+        
+        if (!max2v || !min1v || !max2v || !min1v)
+            return null;
+
         var contactPoints = [
             VectorMath2.add(max2v, min1v).times(1 / 2),
             VectorMath2.add(max1v, min2v).times(1 / 2),
