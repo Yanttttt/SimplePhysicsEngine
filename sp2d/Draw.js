@@ -3,12 +3,14 @@ import * as Entity from "./Entity.js";
 export var canvas;
 export var ctx;
 export var scale;
+export var div;
 
 /**
  * @param {string} canvasID
  */
-export function init(canvasID, width=window.innerWidth - 20, height=window.innerHeight - 100, div=2)
+export function init(canvasID, width=window.innerWidth - 20, height=window.innerHeight - 100, div_=2)
 {
+    div=div_;
     canvas = /** @type {HTMLCanvasElement} */ (document.getElementById(canvasID));
     ctx = /** @type {HTMLCanvasElement} */ (canvas).getContext("2d");
     canvas.width = width;

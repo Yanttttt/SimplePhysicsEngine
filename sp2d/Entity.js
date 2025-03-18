@@ -2,7 +2,7 @@ import { Vector2, VectorMath2 } from "./Vector2.js";
 import * as Draw from "./Draw.js";
 //import * as Draw from "./Draw.js";
 
-var eps = 1e-2;
+var eps = 1e-3;
 // vel and angularVel will be set zero if is less this eps.
 
 export class Rectangle {

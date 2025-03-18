@@ -19,7 +19,7 @@ function buildSeesaw() {
         new Vector2(1 + 0.1, 0),
         new Vector2(1, 0.17),
     ];
-    var stand = new Entity.Polygon(ver, 0, 0.5, Infinity, VectorMath2.zero(), 0, 0, "#0000FF");
+    var stand = new Entity.Polygon(ver, 0, 0.3, Infinity, VectorMath2.zero(), 0, 0, "#0000FF");
     var board = new Entity.Rectangle(
         1.5, 0.02, 0, 0.1,
         undefined,
@@ -41,22 +41,22 @@ function layBlocks() {
     for (let i = 0; i < 5; i++) {
         for (let j = 0; j < m; j++) {
             let pos = new Vector2(s + size/2+ i * size, level + size/2 + j * size);
-            let block = new Entity.Rectangle(size, size, 0.1, 0.2, undefined, pos, VectorMath2.zero(), 0, 0, "#3F3FFF");
+            let block = new Entity.Rectangle(size, size, 0.1, 0.1, undefined, pos, VectorMath2.zero(), 0, 0, "#3F3FFF");
             PhysicsScene.addEntity(block);
         }
     }
 
     //right hand side
     level = 0.17 + 0.02;
-    s = 1.1;
-    n = 4, m = 3;
+    s = 1.4;
+    n = 3, m = 3;
     size = 0.1;
     for (let i = 0; i < n; i++)
     {
         for (let j = 0; j < m; j++)
         {
             let pos = new Vector2(s + size/2+ i * size, level + size/2 + j * size);
-            let block = new Entity.Rectangle(size, size, 0.1, 0.2, undefined, pos, VectorMath2.zero(), 0, 0, "#3F3FFF");
+            let block = new Entity.Rectangle(size, size, 0.1, 0.1, undefined, pos, VectorMath2.zero(), 0, 0, "#3F3FFF");
             PhysicsScene.addEntity(block);
         }
     }
@@ -64,7 +64,11 @@ function layBlocks() {
     // let block = new Entity.Rectangle(0.2, 0.4, 0.1, 0.1, undefined, new Vector2(1.5, level + 0.2), VectorMath2.zero(), 0, 0, "#3F3FFF");
     //         PhysicsScene.addEntity(block);
 
-    var ball = new Entity.Circle(0.2, 0, 0.1, undefined, new Vector2(1.7, 20), new Vector2(0, 0), 0, 0, "#3F3F3F");
+    var ball = new Entity.Circle(0.2, 0, 0.1, undefined, new Vector2(1.7, 7),
+        new Vector2(0, 0), 0, 0, "#3F3F3F");
+    PhysicsScene.addEntity(ball);
+
+    var ball = new Entity.Rectangle(0.2, 0.4, 0.1, 0.5, undefined, new Vector2(0.2, 0.1), VectorMath2.zero(), 0, 0, "#009F00");
     PhysicsScene.addEntity(ball);
 }
 

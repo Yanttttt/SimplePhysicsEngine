@@ -17,6 +17,8 @@ export var entities = [];
 export var collisions = [];
 //export var maxAngularVel = 10.0;
 
+export var substep;
+
 export function init(worldSize_ = null, gravity_ = new Vector2(0.0, -9.8), airResistance_=0.0) {
     simWidth = Draw.canvas.width / Draw.scale;
     simHeight = Draw.canvas.height / Draw.scale;
@@ -221,7 +223,8 @@ export function setThickWallCollision(restitution = 0,friction = 0) {
     addEntity(right);
 }
 
-export function simulate(substep = 1) {
+export function simulate(substep_ = 1) {
+    substep=substep_;
     if (paused) return;
 
     collisions = [];

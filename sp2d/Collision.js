@@ -20,7 +20,8 @@ export class Collision {
     }
 
     resolve() {
-        var corrFactor = 0.2;
+        var corrFactor = 0.3/PhysicsScene.substep;
+        //console.log(corrFactor);
         // change corrFactor here
 
         var a = this.entity1;
