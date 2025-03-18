@@ -100,11 +100,11 @@ export function drawSpring(start, end, numCoils = 5, amplitude = 0, colour = "#0
     var direction = end.subtract(start).normalise();
     var perpendicular = new Vector2(-direction.y, direction.x);
 
-    var length = start.subtract(end);
-    var step = length / (numCoils * 10);
+    var length = start.subtract(end).length();
+    //var step = length / (numCoils * 10);
 
-    for (let i = 0; i <= numCoils * 10; i++) {
-        let t = i / (numCoils * 10);
+    for (let i = 0; i <= numCoils * 4; i++) {
+        let t = i / (numCoils * 4);
         let pos = start.add(direction.times(t * length));
         let offset = perpendicular.times(
             Math.sin(t * Math.PI * 2 * numCoils) * amplitude);
