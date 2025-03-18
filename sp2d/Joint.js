@@ -4,7 +4,7 @@ import * as Entity from "./Entity.js";
 import * as PhysicsScene from "./PhysicsScene.js";
 
 export class Joint {
-    //base class
+    //base class. fixed joint
     /**
      * @param {Vector2} anchorA
      * @param {Vector2} anchorB
@@ -23,15 +23,92 @@ export class Joint {
         this.anchorB = anchorB.clone();
         //anchor point on entity. The coordinates are relative to the object
 
+        this.length = anchorA.add(bodyA.pos).subtract(anchorB.add(bodyB.pos)).length();
+
         this.visibility = visibility;
         //draw or not
 
         this.colour = colour;
+
+        this.angleOffset = this.bodyB.angle - this.bodyA.angle;
     }
 
-    apply() { }
+    apply() {
+        var corrFactor = 0.3 / PhysicsScene.substep;
 
-    draw() { }
+        var b = this.bodyA;
+        var a = this.bodyB;
+        var Pa = this.bodyA.pos.add(this.anchorA);
+        //Absolute coordinates of unconstrained entity
+        var Pb = this.bodyB.pos.add(this.anchorB);
+
+        var diff = Pb.subtract(Pa);
+        var currentLength = diff.length();
+        var normal = diff.normalise();
+        var depth = currentLength - this.length;
+
+        var e = 0;
+        var r_ap = Pa.subtract(a.pos);
+        var r_bp = Pb.subtract(b.pos);
+        var v_a = a.vel.add(r_ap.perpendicular(), a.angularVel);
+        var v_b = b.vel.add(r_bp.perpendicular(), b.angularVel);
+        var v_rel = v_b.subtract(v_a);
+        var v_rel_n = v_rel.dot(normal);
+
+        // if (v_rel_n > 0) { return; }//seperating
+
+        var r_ap_cross_n = r_ap.cross(normal);
+        var r_bp_cross_n = r_bp.cross(normal);
+
+        var denom = 0;
+        if (a.mass !== Infinity) {
+            denom += a.massInv + (r_ap_cross_n * r_ap_cross_n) * a.inertiaInv;
+        }
+        if (b.mass !== Infinity) {
+            denom += b.massInv + (r_bp_cross_n * r_bp_cross_n) * b.inertiaInv;
+        }
+
+        var J = -(1 + e) * v_rel_n / denom;
+        var impulse = normal.times(J);
+
+        if (a.mass !== Infinity) {
+            a.vel.addEqual(impulse.times(-a.massInv));
+        }
+        if (b.mass !== Infinity) {
+            b.vel.addEqual(impulse.times(b.massInv));
+        }
+
+        var totalMassInv = (a.mass !== Infinity ? a.massInv : 0) + (b.mass !== Infinity ? b.massInv : 0);
+        if (totalMassInv > 0) {
+            var corr = normal.times(depth * corrFactor / totalMassInv);
+            if (a.mass !== Infinity) {
+                a.pos.addEqual(corr.times(-a.massInv));
+            }
+            if (b.mass !== Infinity) {
+                b.pos.addEqual(corr.times(b.massInv));
+            }
+        }
+
+        //angle offset constraint
+
+        var relAngleA = Math.atan2(Pa.y - a.pos.y, Pa.x - a.pos.x) - a.angle;
+        var relAngleB = Math.atan2(Pb.y - b.pos.y, Pb.x - b.pos.x) - b.angle;
+
+        var angleDiff = relAngleA - relAngleB - this.angleOffset;
+        // console.log(angleDiff);
+
+        // Directly constrain the angles of the bodies
+        var correction = angleDiff * 0.5; // Apply the correction
+        a.angle -= correction; // Adjust the angle of body A
+        b.angle += correction; // Adjust the angle of body B
+    }
+
+    draw() {
+        var worldAnchorA = this.bodyA.pos.add(this.anchorA);
+        var worldAnchorB = this.bodyB.pos.add(this.anchorB);
+        if(this.visibility)
+            Draw.drawSpring(worldAnchorA, worldAnchorB, 1, 0, this.colour);
+    }
 }
 
 export class Distance extends Joint {
@@ -72,7 +149,7 @@ export class Distance extends Joint {
         var v_rel = v_b.subtract(v_a);
         var v_rel_n = v_rel.dot(normal);
 
-        if (v_rel_n > 0) { return; }//seperating
+        //if (v_rel_n > 0) { return; }//seperating
 
         var r_ap_cross_n = r_ap.cross(normal);
         var r_bp_cross_n = r_bp.cross(normal);
@@ -112,7 +189,8 @@ export class Distance extends Joint {
     draw() {
         var worldAnchorA = this.bodyA.pos.add(this.anchorA);
         var worldAnchorB = this.bodyB.pos.add(this.anchorB);
-        Draw.drawSpring(worldAnchorA, worldAnchorB, 1, 0, this.colour); //straight line
+        if(this.visibility)
+            Draw.drawSpring(worldAnchorA, worldAnchorB, 1, 0, this.colour); //straight line
     }
 }
 
@@ -178,6 +256,7 @@ export class Spring extends Joint {
     draw() {
         var worldAnchorA = this.bodyA.pos.add(this.anchorA);
         var worldAnchorB = this.bodyB.pos.add(this.anchorB);
-        Draw.drawSpring(worldAnchorA, worldAnchorB, 10,this.width, this.colour); 
+        if(this.visibility) 
+            Draw.drawSpring(worldAnchorA, worldAnchorB, 10,this.width, this.colour); 
     }
 }

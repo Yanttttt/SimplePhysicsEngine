@@ -264,7 +264,7 @@ export function simulate(substep_ = 1) {
         for (let i = 0; i < entities.length; i++) {
             //console.log(entities[i].pos);
             var p = entities[i].pos.clone();
-            if ((p.x > 2 * simWidth || p.x < -simWidth) && (p.y < -simHeight || p.y > 2 * simHeight)) continue;
+            //if ((p.x > 2 * simWidth || p.x < -simWidth) && (p.y < -simHeight || p.y > 2 * simHeight)) continue;
             entities[i].simulate(dt / substep, gravity);
         }
 
@@ -293,7 +293,8 @@ export function simulate(substep_ = 1) {
 export function draw() {
     Draw.clear();
     for (let joint of joints) {
-        if(joint.visibility) joint.draw();
+        //if(joint.visibility) 
+        joint.draw();
     }
 
     for (let i = 0; i < entities.length; i++) {
