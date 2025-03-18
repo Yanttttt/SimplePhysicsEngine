@@ -65,7 +65,8 @@ function hangPendulum()
 
 function updateFrame()
 {
-    PhysicsScene.simulate(10);
+    //console.log(PhysicsScene.entities);
+    PhysicsScene.simulate(4);
     PhysicsScene.draw();
     PhysicsScene.drawVertex();
     PhysicsScene.drawContactPoint();

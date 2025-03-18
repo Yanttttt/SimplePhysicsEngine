@@ -66,8 +66,8 @@ export class Rectangle {
         this.angle += this.angularVel * dt;
         this.vertices = this.getVertices();
 
-        if (this.vel.length() < eps)
-            this.vel = VectorMath2.zero();
+        // if (this.vel.length() < eps)
+        //     this.vel = VectorMath2.zero();
 
         if (this.angularVel < eps)
             this.angularVel = 0;
@@ -178,8 +178,8 @@ export class Polygon {
         this.vertices = this.getVertices();
         //this.localVertices = this.vertices.map(v => new Vector2(v.x-this.pos.x, v.y-this.pos.y));
 
-        if (this.vel.length() < eps)
-            this.vel = VectorMath2.zero();
+        // if (this.vel.length() < eps)
+        //     this.vel = VectorMath2.zero();
 
         if (this.angularVel < eps)
             this.angularVel = 0;
@@ -274,6 +274,7 @@ export class Circle {
     setStatic() {
         this.mass = Infinity;
         this.massInv = 0;
+        this.vel = VectorMath2.zero();
     }
 
     /**
@@ -281,18 +282,23 @@ export class Circle {
      * @param {Vector2} gravity
      */
     simulate(dt, gravity) {
-        var kr = 0.01; //rolling friction canstant
+        //var kr = 0.01; //rolling friction canstant
         
         this.vel.addEqual(gravity.times(dt));
+        if (this.mass === Infinity)
+        {
+            this.vel = VectorMath2.zero();
+            //console.log(this.vel);
+        }
+
         this.pos.addEqual(this.vel.times(dt));
         this.angle += this.angularVel * dt;
-
-        if (this.mass === Infinity) this.vel = VectorMath2.zero();
+            
 
         //this.angularVel *= (1 - kr);
 
-        if (this.vel.length() < eps)
-            this.vel = VectorMath2.zero();
+        // if (this.vel.length() < eps)
+        //     this.vel = VectorMath2.zero();
     }
 
     draw()
