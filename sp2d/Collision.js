@@ -22,17 +22,18 @@ export class Collision {
     resolve() {
         var corrFactor = 0.6;
         // change corrFactor here
-        if (this.entity1.type === "Circle" && this.entity2.type === "Circle") {
-            this.resolveCircles(corrFactor);
-        }
-        if ((this.entity1.type === "Rectangle" || this.entity1.type === "Polygon") &&
-            (this.entity2.type === "Rectangle" || this.entity2.type === "Polygon")) {
-            this.resolvePolygons(corrFactor);
-        }
-        if (this.entity1.type === "Circle" &&
-            (this.entity2.type === "Rectangle" || this.entity2.type === "Polygon")) {
-            this.resolveCircleRectangle(corrFactor);
-        }
+        // if (this.entity1.type === "Circle" && this.entity2.type === "Circle") {
+        //     this.resolveCircles(corrFactor);
+        // }
+        // if ((this.entity1.type === "Rectangle" || this.entity1.type === "Polygon") &&
+        //     (this.entity2.type === "Rectangle" || this.entity2.type === "Polygon")) {
+        //     this.resolvePolygons(corrFactor);
+        // }
+        // if (this.entity1.type === "Circle" &&
+        //     (this.entity2.type === "Rectangle" || this.entity2.type === "Polygon")) {
+        //     this.resolveCircleRectangle(corrFactor);
+        // }
+        this.resolvePolygons(corrFactor);
     }
 
     resolvePolygons(corrFactor = 0.8) {
@@ -209,6 +210,8 @@ export class Collision {
             return;
         }
         denom = Math.max(denom, 1e-20);
+
+        //var kr = 0.05; //rolling friction factor
 
         var J = -(1 + e) * v_rel_n / denom;
 

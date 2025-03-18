@@ -10,19 +10,21 @@ export var gravity = new Vector2(0, -9.8);
 export var dt = 1.0 / 60;
 export var worldSize = new Vector2(0, 0); // Initialize with default values
 export var paused = true;
+export var airResistance = 0.0;
 /**  @type {Entity.Rectangle[]|Entity.Circle[]} */
 export var entities = [];
 /** @type {Collision.Collision[]} */
 export var collisions = [];
-export var maxAngularVel = 10.0;
+//export var maxAngularVel = 10.0;
 
-export function init(worldSize_ = null, gravity_ = new Vector2(0.0, -9.8), maxAngularVel_=Infinity) {
+export function init(worldSize_ = null, gravity_ = new Vector2(0.0, -9.8), airResistance_=0.0) {
     simWidth = Draw.canvas.width / Draw.scale;
     simHeight = Draw.canvas.height / Draw.scale;
 
     gravity = gravity_;
     worldSize = worldSize_;
-    maxAngularVel = maxAngularVel_;
+    airResistance = airResistance_;
+    //maxAngularVel = maxAngularVel_;
 
     paused = false;
 

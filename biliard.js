@@ -5,7 +5,7 @@ import * as Entity from "./sp2d/Entity.js";
 import * as Collision from "./sp2d/Collision.js";
 
 Draw.init("myCanvas",window.innerWidth-20,window.innerHeight-140,2);
-PhysicsScene.init(undefined,new Vector2(0.0, -9.8));
+PhysicsScene.init(undefined,new Vector2(0.0, -9.8),0.1);
 //setWallCollision();
 PhysicsScene.setThickWallCollision(1);
 

@@ -1,5 +1,6 @@
 import { Vector2, VectorMath2 } from "./Vector2.js";
 import * as Draw from "./Draw.js";
+//import * as Draw from "./Draw.js";
 
 export class Rectangle {
     constructor(
@@ -56,11 +57,14 @@ export class Rectangle {
     simulate(dt, gravity) {
         // console.log(gravity,dt);
         // console.log(this.width,this.length);
+        var eps = 1e-3;
         this.vel.addEqual(gravity, dt);
         if (this.mass === Infinity) this.vel = VectorMath2.zero();
         this.pos.addEqual(this.vel, dt);
         this.angle += this.angularVel * dt;
         this.vertices = this.getVertices();
+
+        //this.vel.timesEqual();
     }
 
     draw()
@@ -229,6 +233,8 @@ export class Circle {
         mass = null,
         pos = VectorMath2.zero(),
         vel = VectorMath2.zero(),
+        angle = 0,
+        angularVel = 0,
         colour = "#FF0000"
     ) {
         this.id = null;
@@ -240,6 +246,12 @@ export class Circle {
         this.massInv = 1 / this.mass;
         this.pos = pos.clone();
         this.vel = vel.clone();
+        this.angle = 0;
+        this.angularVel = 0;
+
+        this.inertia = this.mass * (this.radius * this.radius) / 2;
+        this.inertiaInv = 1 / this.inertia;
+        
         this.colour = colour;
         this.type = "Circle";
     }
