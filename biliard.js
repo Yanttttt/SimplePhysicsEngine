@@ -164,7 +164,7 @@ document.getElementById("frictionSlider").oninput = function () {
 
 function updateFrame() {
     //console.log(PhysicsScene.entities);
-    PhysicsScene.simulate(4);
+    PhysicsScene.simulate(20);
     PhysicsScene.draw();
     for(let e of PhysicsScene.entities)
     {

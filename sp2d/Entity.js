@@ -287,6 +287,8 @@ export class Circle {
         this.pos.addEqual(this.vel.times(dt));
         this.angle += this.angularVel * dt;
 
+        if (this.mass === Infinity) this.vel = VectorMath2.zero();
+
         //this.angularVel *= (1 - kr);
 
         if (this.vel.length() < eps)

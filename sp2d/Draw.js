@@ -1,4 +1,5 @@
 import * as Entity from "./Entity.js";
+import { Vector2, VectorMath2 } from "./Vector2.js";
 
 export var canvas;
 export var ctx;
@@ -92,6 +93,32 @@ export function drawPolygon(vertices, colour = "#FF0000") {
 
     ctx.closePath();
     ctx.fill();
+}
+
+export function drawSpring(start, end, numCoils = 5, amplitude = 0, colour = "#000000") {
+    var points = [];
+    var direction = end.subtract(start).normalise();
+    var perpendicular = new Vector2(-direction.y, direction.x);
+
+    var length = start.subtract(end);
+    var step = length / (numCoils * 10);
+
+    for (let i = 0; i <= numCoils * 10; i++) {
+        let t = i / (numCoils * 10);
+        let pos = start.add(direction.times(t * length));
+        let offset = perpendicular.times(
+            Math.sin(t * Math.PI * 2 * numCoils) * amplitude);
+        points.push(pos.add(offset));
+    }
+
+    ctx.strokeStyle = colour;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(convertX(points[0]), convertY(points[0]));
+    for (let i = 1; i < points.length; i++) {
+        ctx.lineTo(convertX(points[i]), convertY(points[i]));
+    }
+    ctx.stroke();
 }
 
 export function clear()

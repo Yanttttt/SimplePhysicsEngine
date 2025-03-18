@@ -67,33 +67,14 @@ function layBlocks() {
     var ball = new Entity.Circle(0.2, 0, 0.1, undefined, new Vector2(1.7, 7),
         new Vector2(0, 0), 0, 0, "#3F3F3F");
     PhysicsScene.addEntity(ball);
-
-    var ball = new Entity.Rectangle(0.2, 0.4, 0.1, 0.5, undefined, new Vector2(0.2, 0.1), VectorMath2.zero(), 0, 0, "#009F00");
-    PhysicsScene.addEntity(ball);
 }
 
 function updateFrame() {
     //console.log(PhysicsScene.entities);
     PhysicsScene.simulate(10);
     PhysicsScene.draw();
-    for (let e of PhysicsScene.entities) {
-        if (e.type === "Rectangle" || e.type === "Polygon") {
-            let v = e.getVertices();
-            for (let i of v) {
-                Draw.drawCircle(i, 0.007, "#FF0000");
-            }
-        }
-        if (e.type === "Circle") {
-            let x = Math.cos(e.angle);
-            let y = Math.sin(e.angle);
-            //console.log(e.angle);
-            Draw.drawCircle((new Vector2(x, y)).times(e.radius).add(e.pos), 0.007, "#0000FF");
-        }
-        Draw.drawCircle(e.pos, 0.007, "#FF00FF");
-    }
-    // for (let c of PhysicsScene.collisions) {
-    //     Draw.drawCircle(c.contactPoint, 0.007, "#FFFF00");
-    // }
+    PhysicsScene.drawVertex();
+    PhysicsScene.drawContactPoint();
     requestAnimationFrame(updateFrame); //recursive call, default 60Hz
 }
 

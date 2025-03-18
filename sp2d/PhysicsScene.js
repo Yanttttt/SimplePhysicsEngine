@@ -1,6 +1,7 @@
 import * as Draw from "./Draw.js";
 import * as Entity from "./Entity.js";
 import * as Collision from "./Collision.js";
+import * as Joint from "./Joint.js";
 import { Vector2, VectorMath2 } from "./Vector2.js";
 
 export var simWidth;
@@ -11,11 +12,15 @@ export var dt = 1.0 / 60;
 export var worldSize = new Vector2(0, 0); // Initialize with default values
 export var paused = true;
 export var airResistance = 0.0;
-/**  @type {Entity.Rectangle[]|Entity.Circle[]} */
+/**  @type {Entity.Rectangle[]|Entity.Circle[]|Entity.Polygon[]} */
 export var entities = [];
 /** @type {Collision.Collision[]} */
 export var collisions = [];
 //export var maxAngularVel = 10.0;
+/**
+ * @type {Joint.Joint[]}
+ */
+export var joints = [];
 
 export var substep;
 
@@ -48,6 +53,31 @@ export function addEntity(entity) {
     return entity.id;
     // Passing by reference, id has been changed. 
     // But it may make some convenience.
+}
+
+export function deleteEntity(id) {
+    entities[id] = entities[entities.length - 1];
+    entities.pop();
+    //delete an entity in O(1) time
+    //console.log(entities);
+}
+
+/**
+ * @param {Joint.Joint} joint
+ */
+export function addJoint(joint) {
+    joint.id = joints.length;
+    joints.push(joint);
+    return joint.id;
+    // Passing by reference, id has been changed. 
+    // But it may make some convenience.
+}
+
+export function deleteJoint(id) {
+    joints[id] = joints[entities.length - 1];
+    joints.pop();
+    //delete an entity in O(1) time
+    //console.log(entities);
 }
 
 export function addCollision(collision) {
@@ -238,6 +268,11 @@ export function simulate(substep_ = 1) {
             entities[i].simulate(dt / substep, gravity);
         }
 
+        for (let joint of joints)
+        {
+            joint.apply();
+        }
+
         for (let i = 0; i < entities.length; i++) {
             for (let j = i + 1; j < entities.length; j++) {
                 var collision = Collision.detect(entities[i], entities[j]);
@@ -257,7 +292,35 @@ export function simulate(substep_ = 1) {
 
 export function draw() {
     Draw.clear();
+    for (let joint of joints) {
+        if(joint.visibility) joint.draw();
+    }
+
     for (let i = 0; i < entities.length; i++) {
         entities[i].draw();
+    }
+}
+
+export function drawVertex() {
+    for (let e of entities) {
+        if (e.type === "Rectangle" || e.type === "Polygon") {
+            let v = e.getVertices();
+            for (let i of v) {
+                Draw.drawCircle(i, 0.007, "#FF0000");
+            }
+        }
+        if (e.type === "Circle") {
+            let x = Math.cos(e.angle);
+            let y = Math.sin(e.angle);
+            //console.log(e.angle);
+            Draw.drawCircle((new Vector2(x, y)).times(e.radius).add(e.pos), 0.007, "#0000FF");
+        }
+        Draw.drawCircle(e.pos, 0.007, "#FF00FF");
+    }
+}
+
+export function drawContactPoint() {
+    for (let c of collisions) {
+        Draw.drawCircle(c.contactPoint, 0.007, "#FFFF00");
     }
 }
