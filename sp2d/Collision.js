@@ -19,24 +19,10 @@ export class Collision {
         this.contactPoint = contactPoint;
     }
 
-    resolve() {
-        var corrFactor = 0.6;
+    resolve(corrFactor = 0.8) {
+        var corrFactor = 0.3;
         // change corrFactor here
-        // if (this.entity1.type === "Circle" && this.entity2.type === "Circle") {
-        //     this.resolveCircles(corrFactor);
-        // }
-        // if ((this.entity1.type === "Rectangle" || this.entity1.type === "Polygon") &&
-        //     (this.entity2.type === "Rectangle" || this.entity2.type === "Polygon")) {
-        //     this.resolvePolygons(corrFactor);
-        // }
-        // if (this.entity1.type === "Circle" &&
-        //     (this.entity2.type === "Rectangle" || this.entity2.type === "Polygon")) {
-        //     this.resolveCircleRectangle(corrFactor);
-        // }
-        this.resolvePolygons(corrFactor);
-    }
 
-    resolvePolygons(corrFactor = 0.8) {
         var a = this.entity1;
         var b = this.entity2;
         var normal = this.normal.clone();
@@ -108,7 +94,6 @@ export class Collision {
 
         //console.log(tangent,Jf,tangent.times(Jf));
 
-
         if (a.mass !== Infinity) {
             a.vel.addEqual(impulse.times(-a.massInv));
             a.angularVel -= r_ap.cross(impulse) * a.inertiaInv;
@@ -149,171 +134,6 @@ export class Collision {
                 b.pos.addEqual(corr.times(b.massInv));
             }
         }
-    }
-
-    resolveCircleRectangle(corrFactor = 0.8) {
-        // Draw.drawCircle(this.contactPoint,0.01, "#FFFF00");
-        // console.log(this.contactPoint);
-        // error;
-
-        var c = this.entity1; //circle
-        var b = this.entity2; //rectangle
-        var normal = this.normal.clone();
-        var depth = this.depth;
-        var P = this.contactPoint;
-
-        var e = Math.min(c.restitution, b.restitution);
-
-        // console.log(c.restitution, b.restitution);
-
-        if (c.mass === Infinity && b.mass === Infinity) {
-            return;
-        }// 2 static entities
-        // console.log(this.contactPoint);
-
-        var r_cp = P.subtract(c.pos);
-        var r_bp = P.subtract(b.pos);
-
-        var v_c = c.vel;
-        var v_b = b.vel.add(r_bp.perpendicular(), b.angularVel);
-
-        var v_rel = v_b.subtract(v_c);
-        var v_rel_n = v_rel.dot(normal);
-
-        // if(v_rel_n>0)
-        // {
-        //     return;
-        // }//seperating
-
-        var r_ap_cross_n = r_cp.cross(normal);
-        var r_bp_cross_n = r_bp.cross(normal);
-        // error;
-
-        var denom = 0;
-        if (c.mass !== Infinity) {
-            denom += c.massInv;
-        }
-        // console.log(denom);
-        // error;
-        if (b.mass !== Infinity) {
-            denom += b.massInv + (r_bp_cross_n * r_bp_cross_n) * b.inertiaInv;
-
-            //console.log(b.massInv,r_bp_cross_n,b.inertiaInv);
-            // error;
-        }
-
-        // console.log(denom);
-        // error;
-
-        if (denom === 0) {
-            console.log("denom == 0");
-            return;
-        }
-        denom = Math.max(denom, 1e-20);
-
-        //var kr = 0.05; //rolling friction factor
-
-        var J = -(1 + e) * v_rel_n / denom;
-
-        var impulse = normal.times(J);
-
-        // if(normal==undefined) console.log("normal undefined", normal);
-
-        // if(Number.isNaN(impulse.x)||Number.isNaN(impulse.y))
-        //     {
-        //         console.log("normal",normal);
-        //         console.log("v_rel_n",v_rel_n);
-        //         console.log("denom",denom);
-        //         error;
-        //     }
-
-        if (c.mass !== Infinity) {
-            c.vel.addEqual(impulse.times(-c.massInv));
-        }
-        // console.log(c.massInv);
-        // error;
-        if (b.mass !== Infinity) {
-            b.vel.addEqual(impulse.times(b.massInv));
-            b.angularVel += r_bp.cross(impulse) * b.inertiaInv;
-        }
-
-        if (b.mass !== Infinity) {
-            b.angularVelocity = Math.min(
-                Math.max(b.angularVel, -PhysicsScene.maxAngularVel),
-                PhysicsScene.maxAngularVel
-            );
-        }
-
-        //avoid penetration
-
-        var totalMassInv = (c.mass !== Infinity ? c.massInv : 0) + (b.mass !== Infinity ? b.massInv : 0);
-        if (totalMassInv > 0) {
-            var corr = normal.times(depth * corrFactor / totalMassInv);
-            if (c.mass !== Infinity) {
-                c.pos.addEqual(corr.times(-c.massInv));
-            }
-            if (b.mass !== Infinity) {
-                b.pos.addEqual(corr.times(b.massInv));
-            }
-        }
-    }
-
-    resolveCircles(corrFactor = 0.8) {
-        var e1 = this.entity1;
-        var e2 = this.entity2;
-
-        var normal = this.normal;
-        var depth = this.depth;
-
-        if (e1.mass === Infinity && e2.mass === Infinity) {
-            return;
-        }// 2 static entities
-
-
-
-        // if(VectorMath2.subtract(e2.vel,e1.vel).dot(normal)>0)// separating
-        // {
-        //     return;
-        // }
-
-        var e = Math.min(e1.restitution, e2.restitution);
-        //console.log(e);
-
-        var v1 = e1.vel.dot(normal);
-        var v2 = e2.vel.dot(normal);
-
-        var m1 = e1.mass;
-        var m2 = e2.mass;
-
-        var corr = depth * corrFactor;
-        //console.log(corr);
-
-        if (e1.mass == Infinity) {
-            e2.pos.addEqual(normal, 2 * corr);
-            e2.vel.addEqual(normal, v2 * e);
-            return;
-        }
-        else if (e2.mass === Infinity) {
-            e1.pos.addEqual(normal, -2 * corr);
-            e1.vel.addEqual(normal, -v1 * e);
-            return;
-        }//1000 lines achieved
-
-        e1.pos.addEqual(normal, -corr);
-        e2.pos.addEqual(normal, corr);
-
-        var v1f = (m1 * v1 + m2 * (2 * v2 - v1)) * e / (m1 + m2);
-        var v2f = (m2 * v2 + m1 * (2 * v1 - v2)) * e / (m1 + m2);
-
-        if (!v1f) v1f = 0;
-        if (!v2f) v2f = 0;
-
-        //console.log(v1f, v2f);
-
-        //error;
-
-        e1.vel.addEqual(normal, v1f - v1);
-        e2.vel.addEqual(normal, v2f - v2);
     }
 }
 

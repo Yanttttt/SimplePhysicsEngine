@@ -68,6 +68,25 @@ export function setDt(d) {
     dt = d;
 }
 
+export function setFloorCollision(restitution = 0, friction = 0) {
+    var thickness = 0.5;
+    var bottom = new Entity.Rectangle(
+        simWidth,
+        thickness,
+        restitution,
+        friction,
+        Infinity,
+        new Vector2(simWidth / 2, -thickness / 2),
+        //new Vector2(simWidth/2,0),
+        VectorMath2.zero(),
+        0,
+        0,
+        "#4F4F4F"
+    );
+    bottom.setStatic();
+    addEntity(bottom);
+}
+
 export function setWallCollision(restitution = 0, friction = 0) {
     var thickness = 0.5;
     var top = new Entity.Rectangle(
