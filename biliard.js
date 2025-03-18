@@ -82,7 +82,7 @@ function addBall() {
 window.addBall = addBall;
 
 function setupScene() {
-    PhysicsScene.init(undefined,new Vector2(0.0, 0));
+    PhysicsScene.init(undefined,new Vector2(0.0, -1.0));
     //setWallCollision();
     PhysicsScene.setWallCollision(1);
 }
@@ -156,7 +156,7 @@ document.getElementById("restitutionSlider").oninput = function () {
 document.getElementById("frictionSlider").oninput = function () {
     for(let i=0;i<PhysicsScene.entities.length;i++)
     {
-        PhysicsScene.entities[i].friction = this.value/10;
+        PhysicsScene.entities[i].friction = this.value/20;
     }
 };
 
@@ -173,6 +173,13 @@ function updateFrame() {
             for(let i of v) {
                 Draw.drawCircle(i,0.01, "#FF0000");
             }
+        }
+        if (e.type === "Circle")
+        {
+            let x = Math.cos(e.angle);
+            let y = Math.sin(e.angle);
+            //console.log(e.angle);
+            Draw.drawCircle((new Vector2(x,y)).times(e.radius).add(e.pos),0.01, "#0000FF");
         }
         Draw.drawCircle(e.pos,0.01, "#FF00FF");
     }

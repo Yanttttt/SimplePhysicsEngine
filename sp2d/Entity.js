@@ -2,6 +2,9 @@ import { Vector2, VectorMath2 } from "./Vector2.js";
 import * as Draw from "./Draw.js";
 //import * as Draw from "./Draw.js";
 
+var eps = 1e-3;
+// vel and angularVel will be set zero if is less this eps.
+
 export class Rectangle {
     constructor(
         width,
@@ -57,12 +60,17 @@ export class Rectangle {
     simulate(dt, gravity) {
         // console.log(gravity,dt);
         // console.log(this.width,this.length);
-        var eps = 1e-3;
         this.vel.addEqual(gravity, dt);
         if (this.mass === Infinity) this.vel = VectorMath2.zero();
         this.pos.addEqual(this.vel, dt);
         this.angle += this.angularVel * dt;
         this.vertices = this.getVertices();
+
+        if (this.vel.length() < eps)
+            this.vel = VectorMath2.zero();
+
+        if (this.angularVel < eps)
+            this.angularVel = 0;
 
         //this.vel.timesEqual();
     }
@@ -160,6 +168,7 @@ export class Polygon {
     }
 
     simulate(dt, gravity) {
+
         // console.log(gravity,dt);
         // console.log(this.width,this.length);
         this.vel.addEqual(gravity, dt);
@@ -168,6 +177,12 @@ export class Polygon {
         this.angle += this.angularVel * dt;
         this.vertices = this.getVertices();
         //this.localVertices = this.vertices.map(v => new Vector2(v.x-this.pos.x, v.y-this.pos.y));
+
+        if (this.vel.length() < eps)
+            this.vel = VectorMath2.zero();
+
+        if (this.angularVel < eps)
+            this.angularVel = 0;
     }
 
     draw()
@@ -266,8 +281,16 @@ export class Circle {
      * @param {Vector2} gravity
      */
     simulate(dt, gravity) {
+        var kr = 0.01; //rolling friction canstant
+        
         this.vel.addEqual(gravity.times(dt));
         this.pos.addEqual(this.vel.times(dt));
+        this.angle += this.angularVel * dt;
+
+        //this.angularVel *= (1 - kr);
+
+        if (this.vel.length() < eps)
+            this.vel = VectorMath2.zero();
     }
 
     draw()
