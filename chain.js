@@ -36,15 +36,15 @@ function createStick()
         new Vector2(0.7,1),
         0,
         0,
-        "0000FF"
+        "#0000FF"
     );
     PhysicsScene.addEntity(block);
 
-    var stick=new Joint.Joint(
+    var stick=new Joint.Weld(
         ball,
         block,
-        VectorMath2.zero(),
-        VectorMath2.zero(),
+        new Vector2(0,0),
+        new Vector2(0,0),
         true,
         "#3f3f3f"
     );

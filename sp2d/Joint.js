@@ -23,6 +23,31 @@ export class Joint {
         this.anchorB = anchorB.clone();
         //anchor point on entity. The coordinates are relative to the object
 
+        this.visibility = visibility;
+        //draw or not
+
+        this.colour = colour;
+    }
+
+    apply() {}
+
+    draw() {}
+}
+
+export class Weld extends Joint{
+    //base class. fixed joint
+    /**
+     * @param {Vector2} anchorA
+     * @param {Vector2} anchorB
+     * @param {Entity.Circle | Entity.Rectangle | Entity.Polygon} bodyA
+     * @param {Entity.Circle | Entity.Rectangle | Entity.Polygon} bodyB
+     * @param {boolean} visibility
+     * @param {string} colour
+     */
+    constructor(bodyA, bodyB, anchorA, anchorB, visibility, colour = "#000000") {
+        super(bodyA, bodyB, anchorA, anchorB, visibility, colour);
+        
+        this.id = null;
         this.length = anchorA.add(bodyA.pos).subtract(anchorB.add(bodyB.pos)).length();
 
         this.visibility = visibility;
@@ -34,73 +59,100 @@ export class Joint {
     }
 
     apply() {
-        var corrFactor = 0.3 / PhysicsScene.substep;
+        var a = this.bodyA;
+        var b = this.bodyB;
 
-        var b = this.bodyA;
-        var a = this.bodyB;
-        var Pa = this.bodyA.pos.add(this.anchorA);
-        //Absolute coordinates of unconstrained entity
-        var Pb = this.bodyB.pos.add(this.anchorB);
+        if (a.mass === Infinity && b.mass === Infinity) return;
 
-        var diff = Pb.subtract(Pa);
-        var currentLength = diff.length();
+        var rA = this.anchorA.rotate(a.angle);
+        var rB = this.anchorB.rotate(b.angle);
+        var worldAnchorA = a.pos.add(rA);
+        var worldAnchorB = b.pos.add(rB);
+
+        var diff = worldAnchorB.subtract(worldAnchorA);
         var normal = diff.normalise();
-        var depth = currentLength - this.length;
+        var depth = diff.length();
 
-        var e = 0;
-        var r_ap = Pa.subtract(a.pos);
-        var r_bp = Pb.subtract(b.pos);
-        var v_a = a.vel.add(r_ap.perpendicular(), a.angularVel);
-        var v_b = b.vel.add(r_bp.perpendicular(), b.angularVel);
-        var v_rel = v_b.subtract(v_a);
-        var v_rel_n = v_rel.dot(normal);
+        // 计算质量和惯性倒数
+        var mA = a.massInv, mB = b.massInv;
+        var iA = a.inertiaInv, iB = b.inertiaInv;
 
-        // if (v_rel_n > 0) { return; }//seperating
+        // 计算雅可比矩阵的 3x3 质量矩阵 K
+        var K = [
+            [mA + mB + rA.y * rA.y * iA + rB.y * rB.y * iB, -rA.y * rA.x * iA - rB.y * rB.x * iB, -rA.y * iA - rB.y * iB],
+            [-rA.y * rA.x * iA - rB.y * rB.x * iB, mA + mB + rA.x * rA.x * iA + rB.x * rB.x * iB, rA.x * iA + rB.x * iB],
+            [-rA.y * iA - rB.y * iB, rA.x * iA + rB.x * iB, iA + iB]
+        ];
 
-        var r_ap_cross_n = r_ap.cross(normal);
-        var r_bp_cross_n = r_bp.cross(normal);
+        // 计算相对速度
+        var vA = a.vel.add(rA.perpendicular().times(a.angularVel));
+        var vB = b.vel.add(rB.perpendicular().times(b.angularVel));
+        var vRel = vB.subtract(vA);
 
-        var denom = 0;
-        if (a.mass !== Infinity) {
-            denom += a.massInv + (r_ap_cross_n * r_ap_cross_n) * a.inertiaInv;
-        }
-        if (b.mass !== Infinity) {
-            denom += b.massInv + (r_bp_cross_n * r_bp_cross_n) * b.inertiaInv;
-        }
+        // 计算角度误差
+        var angleError = (b.angle - a.angle - this.angleOffset);
 
-        var J = -(1 + e) * v_rel_n / denom;
-        var impulse = normal.times(J);
+        // 计算右侧项 (误差修正)
+        var bVec = [-vRel.x, -vRel.y, -angleError];
 
+        // 计算拉格朗日乘数 λ = K⁻¹ * (-J·V)
+        var lambda = this.solve3x3(K, bVec);
+
+        // 计算冲量
+        var impulse = new Vector2(lambda[0], lambda[1]);
+        var angularImpulse = lambda[2];
+
+        // 施加冲量
         if (a.mass !== Infinity) {
             a.vel.addEqual(impulse.times(-a.massInv));
+            a.angularVel -= rA.cross(impulse) * a.inertiaInv;
+            a.angularVel -= angularImpulse * a.inertiaInv;
         }
+
         if (b.mass !== Infinity) {
             b.vel.addEqual(impulse.times(b.massInv));
+            b.angularVel += rB.cross(impulse) * b.inertiaInv;
+            b.angularVel += angularImpulse * b.inertiaInv;
         }
+    }
 
-        var totalMassInv = (a.mass !== Infinity ? a.massInv : 0) + (b.mass !== Infinity ? b.massInv : 0);
-        if (totalMassInv > 0) {
-            var corr = normal.times(depth * corrFactor / totalMassInv);
-            if (a.mass !== Infinity) {
-                a.pos.addEqual(corr.times(-a.massInv));
-            }
-            if (b.mass !== Infinity) {
-                b.pos.addEqual(corr.times(b.massInv));
-            }
-        }
+    /**
+     * 求解 3x3 线性方程组 Ax = b
+     * @param {number[][]} A - 3x3 矩阵
+     * @param {number[]} b - 右侧列向量
+     * @returns {number[]} - 解向量
+     */
+    solve3x3(A, b) {
+        var detA =
+            A[0][0] * (A[1][1] * A[2][2] - A[1][2] * A[2][1]) -
+            A[0][1] * (A[1][0] * A[2][2] - A[1][2] * A[2][0]) +
+            A[0][2] * (A[1][0] * A[2][1] - A[1][1] * A[2][0]);
 
-        //angle offset constraint
+        if (Math.abs(detA) < 1e-6) return [0, 0, 0];
 
-        var relAngleA = Math.atan2(Pa.y - a.pos.y, Pa.x - a.pos.x) - a.angle;
-        var relAngleB = Math.atan2(Pb.y - b.pos.y, Pb.x - b.pos.x) - b.angle;
+        var invA = [
+            [
+                (A[1][1] * A[2][2] - A[1][2] * A[2][1]) / detA,
+                (A[0][2] * A[2][1] - A[0][1] * A[2][2]) / detA,
+                (A[0][1] * A[1][2] - A[0][2] * A[1][1]) / detA
+            ],
+            [
+                (A[1][2] * A[2][0] - A[1][0] * A[2][2]) / detA,
+                (A[0][0] * A[2][2] - A[0][2] * A[2][0]) / detA,
+                (A[0][2] * A[1][0] - A[0][0] * A[1][2]) / detA
+            ],
+            [
+                (A[1][0] * A[2][1] - A[1][1] * A[2][0]) / detA,
+                (A[0][1] * A[2][0] - A[0][0] * A[2][1]) / detA,
+                (A[0][0] * A[1][1] - A[0][1] * A[1][0]) / detA
+            ]
+        ];
 
-        var angleDiff = relAngleA - relAngleB - this.angleOffset;
-        // console.log(angleDiff);
-
-        // Directly constrain the angles of the bodies
-        var correction = angleDiff * 0.5; // Apply the correction
-        a.angle -= correction; // Adjust the angle of body A
-        b.angle += correction; // Adjust the angle of body B
+        return [
+            invA[0][0] * b[0] + invA[0][1] * b[1] + invA[0][2] * b[2],
+            invA[1][0] * b[0] + invA[1][1] * b[1] + invA[1][2] * b[2],
+            invA[2][0] * b[0] + invA[2][1] * b[1] + invA[2][2] * b[2]
+        ];
     }
 
     draw() {
