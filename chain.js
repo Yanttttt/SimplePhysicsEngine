@@ -182,7 +182,7 @@ function buildChain1()
         prev = link;
     }
 
-    var endPos=new Vector2(2.14,1.8);
+    var endPos=new Vector2(2.14,1.9);
 
     var end=new Entity.Circle(0.2, 1, 0, undefined,
         endPos,
@@ -200,7 +200,7 @@ function buildChain1()
         new Vector2(linkLength / 2,0), 
         new Vector2(0,0),
         0.03,
-        5,
+        7,
         0.01,
         true,
         "#3f3f3f"
@@ -213,7 +213,7 @@ function buildChain1()
 function updateFrame()
 {
     //console.log(PhysicsScene.entities);
-    PhysicsScene.simulate(50);
+    PhysicsScene.simulate(30);
     PhysicsScene.draw();
     //PhysicsScene.drawVertex();
     PhysicsScene.drawAnchorPoint();
