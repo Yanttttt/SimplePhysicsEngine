@@ -41,7 +41,7 @@ function addPendulum(pos)
 
     var rope=new Joint.Spring(hinge, ball,
         VectorMath2.zero(),
-        VectorMath2.zero(),
+        new Vector2(0.1,0),
         0.05,
         2,
         0.01,

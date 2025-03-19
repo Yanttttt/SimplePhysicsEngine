@@ -40,15 +40,36 @@ function createStick()
     );
     PhysicsScene.addEntity(block);
 
-    var stick=new Joint.Weld(
+    var stick1=new Joint.Distance(
+        ball,
+        block,
+        new Vector2(0,0.1),
+        new Vector2(0.05,0.05),
+        false,
+        "#3f3f3f"
+    );
+    var stick2=new Joint.Distance(
+        ball,
+        block,
+        new Vector2(0,0.1),
+        new Vector2(-0.05,0.05),
+        false,
+        "#3f3f3f"
+    );
+    var stick3=new Joint.Distance(
         ball,
         block,
         new Vector2(0,0),
-        new Vector2(0,0),
+        new Vector2(-0.0,0.0),
         true,
         "#3f3f3f"
     );
-    PhysicsScene.addJoint(stick);
+    PhysicsScene.addJoint(stick1);
+    PhysicsScene.addJoint(stick2);
+    PhysicsScene.addJoint(stick3);
+
+    // Weld joint is hard to implement and beyond my ability.
+    // But it can be actually simulated by multiple distance joints.
 }
 
 function updateFrame()

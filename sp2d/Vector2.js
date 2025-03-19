@@ -87,6 +87,14 @@ class Vector2 {
         }
         this.timesEqual(1 / len);
     }
+    rotate(angle) {//angle in radians, anticlockwise
+        let cosA = Math.cos(angle);
+        let sinA = Math.sin(angle);
+        return new Vector2(
+            this.x * cosA - this.y * sinA,
+            this.x * sinA + this.y * cosA
+        );
+    }
     clone() {
         return new Vector2(this.x, this.y);
     }

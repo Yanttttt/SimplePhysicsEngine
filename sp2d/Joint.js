@@ -55,111 +55,22 @@ export class Weld extends Joint{
 
         this.colour = colour;
 
-        this.angleOffset = this.bodyB.angle - this.bodyA.angle;
+        this.angleA=bodyA.angle;
+        this.angleB=bodyB.angle;
     }
 
     apply() {
-        var a = this.bodyA;
-        var b = this.bodyB;
-
-        if (a.mass === Infinity && b.mass === Infinity) return;
-
-        var rA = this.anchorA.rotate(a.angle);
-        var rB = this.anchorB.rotate(b.angle);
-        var worldAnchorA = a.pos.add(rA);
-        var worldAnchorB = b.pos.add(rB);
-
-        var diff = worldAnchorB.subtract(worldAnchorA);
-        var normal = diff.normalise();
-        var depth = diff.length();
-
-        // 计算质量和惯性倒数
-        var mA = a.massInv, mB = b.massInv;
-        var iA = a.inertiaInv, iB = b.inertiaInv;
-
-        // 计算雅可比矩阵的 3x3 质量矩阵 K
-        var K = [
-            [mA + mB + rA.y * rA.y * iA + rB.y * rB.y * iB, -rA.y * rA.x * iA - rB.y * rB.x * iB, -rA.y * iA - rB.y * iB],
-            [-rA.y * rA.x * iA - rB.y * rB.x * iB, mA + mB + rA.x * rA.x * iA + rB.x * rB.x * iB, rA.x * iA + rB.x * iB],
-            [-rA.y * iA - rB.y * iB, rA.x * iA + rB.x * iB, iA + iB]
-        ];
-
-        // 计算相对速度
-        var vA = a.vel.add(rA.perpendicular().times(a.angularVel));
-        var vB = b.vel.add(rB.perpendicular().times(b.angularVel));
-        var vRel = vB.subtract(vA);
-
-        // 计算角度误差
-        var angleError = (b.angle - a.angle - this.angleOffset);
-
-        // 计算右侧项 (误差修正)
-        var bVec = [-vRel.x, -vRel.y, -angleError];
-
-        // 计算拉格朗日乘数 λ = K⁻¹ * (-J·V)
-        var lambda = this.solve3x3(K, bVec);
-
-        // 计算冲量
-        var impulse = new Vector2(lambda[0], lambda[1]);
-        var angularImpulse = lambda[2];
-
-        // 施加冲量
-        if (a.mass !== Infinity) {
-            a.vel.addEqual(impulse.times(-a.massInv));
-            a.angularVel -= rA.cross(impulse) * a.inertiaInv;
-            a.angularVel -= angularImpulse * a.inertiaInv;
-        }
-
-        if (b.mass !== Infinity) {
-            b.vel.addEqual(impulse.times(b.massInv));
-            b.angularVel += rB.cross(impulse) * b.inertiaInv;
-            b.angularVel += angularImpulse * b.inertiaInv;
-        }
-    }
-
-    /**
-     * 求解 3x3 线性方程组 Ax = b
-     * @param {number[][]} A - 3x3 矩阵
-     * @param {number[]} b - 右侧列向量
-     * @returns {number[]} - 解向量
-     */
-    solve3x3(A, b) {
-        var detA =
-            A[0][0] * (A[1][1] * A[2][2] - A[1][2] * A[2][1]) -
-            A[0][1] * (A[1][0] * A[2][2] - A[1][2] * A[2][0]) +
-            A[0][2] * (A[1][0] * A[2][1] - A[1][1] * A[2][0]);
-
-        if (Math.abs(detA) < 1e-6) return [0, 0, 0];
-
-        var invA = [
-            [
-                (A[1][1] * A[2][2] - A[1][2] * A[2][1]) / detA,
-                (A[0][2] * A[2][1] - A[0][1] * A[2][2]) / detA,
-                (A[0][1] * A[1][2] - A[0][2] * A[1][1]) / detA
-            ],
-            [
-                (A[1][2] * A[2][0] - A[1][0] * A[2][2]) / detA,
-                (A[0][0] * A[2][2] - A[0][2] * A[2][0]) / detA,
-                (A[0][2] * A[1][0] - A[0][0] * A[1][2]) / detA
-            ],
-            [
-                (A[1][0] * A[2][1] - A[1][1] * A[2][0]) / detA,
-                (A[0][1] * A[2][0] - A[0][0] * A[2][1]) / detA,
-                (A[0][0] * A[1][1] - A[0][1] * A[1][0]) / detA
-            ]
-        ];
-
-        return [
-            invA[0][0] * b[0] + invA[0][1] * b[1] + invA[0][2] * b[2],
-            invA[1][0] * b[0] + invA[1][1] * b[1] + invA[1][2] * b[2],
-            invA[2][0] * b[0] + invA[2][1] * b[1] + invA[2][2] * b[2]
-        ];
+        //dropped
     }
 
     draw() {
-        var worldAnchorA = this.bodyA.pos.add(this.anchorA);
-        var worldAnchorB = this.bodyB.pos.add(this.anchorB);
+        var rotatedAnchorA = this.anchorA.rotate(-this.angleA+this.bodyA.angle);
+        var rotatedAnchorB = this.anchorB.rotate(-this.angleB+this.bodyB.angle);
+
+        var Pa = this.bodyA.pos.add(rotatedAnchorA);
+        var Pb = this.bodyB.pos.add(rotatedAnchorB);
         if(this.visibility)
-            Draw.drawSpring(worldAnchorA, worldAnchorB, 1, 0, this.colour);
+            Draw.drawSpring(Pa, Pb, 1, 0, this.colour); 
     }
 }
 
@@ -176,24 +87,30 @@ export class Distance extends Joint {
         // this.length = anchorA.subtract(anchorB).length();
         this.id = null;
         this.length = anchorA.add(bodyA.pos).subtract(anchorB.add(bodyB.pos)).length();
+        this.angleA=bodyA.angle;
+        this.angleB=bodyB.angle;
     }
 
     apply() {
         // a joint is actually a collision
         var corrFactor = 0.3 / PhysicsScene.substep;
 
-        var b = this.bodyA;
-        var a = this.bodyB;
-        var Pa = this.bodyA.pos.add(this.anchorA);
-        //Absolute coordinates of unconstrained entity
-        var Pb = this.bodyB.pos.add(this.anchorB);
+        var a = this.bodyA;
+        var b = this.bodyB;
 
-        var diff = Pb.subtract(Pa);
+        var rotatedAnchorA = this.anchorA.rotate(-this.angleA+this.bodyA.angle);
+        var rotatedAnchorB = this.anchorB.rotate(-this.angleB+this.bodyB.angle);
+
+        var Pa = this.bodyA.pos.add(rotatedAnchorA);
+        //Absolute coordinates of unconstrained entity
+        var Pb = this.bodyB.pos.add(rotatedAnchorB);
+
+        var diff = Pa.subtract(Pb);
         var currentLength = diff.length();
         var normal = diff.normalise();
         var depth = currentLength - this.length;
 
-        var e = 0;
+        var e = Math.min(a.restitution,b.restitution);
         var r_ap = Pa.subtract(a.pos);
         var r_bp = Pb.subtract(b.pos);
         var v_a = a.vel.add(r_ap.perpendicular(), a.angularVel);
@@ -220,10 +137,16 @@ export class Distance extends Joint {
         if (a.mass !== Infinity) {
             a.vel.addEqual(impulse.times(-a.massInv));
             a.angularVel -= r_ap.cross(impulse) * a.inertiaInv;
+
+            // a.vel.addEqual(frictionImpulse.times(-a.massInv));
+            // a.angularVel -= r_ap.cross(frictionImpulse) * a.inertiaInv;
         }
         if (b.mass !== Infinity) {
             b.vel.addEqual(impulse.times(b.massInv));
             b.angularVel += r_bp.cross(impulse) * b.inertiaInv;
+
+            // b.vel.addEqual(frictionImpulse.times(b.massInv));
+            // b.angularVel += r_bp.cross(frictionImpulse) * b.inertiaInv;
         }
 
         var totalMassInv = (a.mass !== Infinity ? a.massInv : 0) + (b.mass !== Infinity ? b.massInv : 0);
@@ -239,10 +162,14 @@ export class Distance extends Joint {
     }
 
     draw() {
-        var worldAnchorA = this.bodyA.pos.add(this.anchorA);
-        var worldAnchorB = this.bodyB.pos.add(this.anchorB);
+        var rotatedAnchorA = this.anchorA.rotate(-this.angleA+this.bodyA.angle);
+        var rotatedAnchorB = this.anchorB.rotate(-this.angleB+this.bodyB.angle);
+
+        var Pa = this.bodyA.pos.add(rotatedAnchorA);
+        //Absolute coordinates of unconstrained entity
+        var Pb = this.bodyB.pos.add(rotatedAnchorB);
         if(this.visibility)
-            Draw.drawSpring(worldAnchorA, worldAnchorB, 1, 0, this.colour); //straight line
+            Draw.drawSpring(Pa, Pb, 1, 0, this.colour); //straight line
     }
 }
 
@@ -263,7 +190,11 @@ export class Spring extends Joint {
         this.width=width;
         this.stiffness = stiffness; //aka spring constant
         this.damping = damping; //you know what it is
-        this.restLength = anchorA.add(bodyA.pos).subtract(anchorB.add(bodyB.pos)).length(); // 计算自然长度
+        this.restLength = anchorA.add(bodyA.pos).subtract(anchorB.add(bodyB.pos)).length();
+        //initial length
+        
+        this.angleA=bodyA.angle;
+        this.angleB=bodyB.angle;
     }
 
     apply() {
@@ -271,12 +202,17 @@ export class Spring extends Joint {
         var a = this.bodyA;
         var b = this.bodyB;
         
-        var worldAnchorA = a.pos.add(this.anchorA);
-        var worldAnchorB = b.pos.add(this.anchorB);
-        var diff = worldAnchorB.subtract(worldAnchorA);
+        var rotatedAnchorA = this.anchorA.rotate(-this.angleA+this.bodyA.angle);
+        var rotatedAnchorB = this.anchorB.rotate(-this.angleB+this.bodyB.angle);
+
+        var Pa = this.bodyA.pos.add(rotatedAnchorA);
+        //Absolute coordinates of unconstrained entity
+        var Pb = this.bodyB.pos.add(rotatedAnchorB);
+
+        var diff = Pb.subtract(Pa);
 
         var currentLength = diff.length();
-        if (currentLength === 0) return;
+        //if (currentLength === 0) return;
 
         var normal = diff.normalise();
         var stretch = currentLength - this.restLength;
@@ -284,8 +220,8 @@ export class Spring extends Joint {
         // Hooke's law
         var springForce = normal.times(-this.stiffness * stretch*dt);
 
-        var r_ap = worldAnchorA.subtract(a.pos);
-        var r_bp = worldAnchorB.subtract(b.pos);
+        var r_ap = Pa.subtract(a.pos);
+        var r_bp = Pb.subtract(b.pos);
 
         var v_a = a.vel.add(r_ap.perpendicular().times(a.angularVel));
         var v_b = b.vel.add(r_bp.perpendicular().times(b.angularVel));
@@ -306,9 +242,13 @@ export class Spring extends Joint {
     }
 
     draw() {
-        var worldAnchorA = this.bodyA.pos.add(this.anchorA);
-        var worldAnchorB = this.bodyB.pos.add(this.anchorB);
-        if(this.visibility) 
-            Draw.drawSpring(worldAnchorA, worldAnchorB, 10,this.width, this.colour); 
+        var rotatedAnchorA = this.anchorA.rotate(-this.angleA+this.bodyA.angle);
+        var rotatedAnchorB = this.anchorB.rotate(-this.angleB+this.bodyB.angle);
+
+        var Pa = this.bodyA.pos.add(rotatedAnchorA);
+        //Absolute coordinates of unconstrained entity
+        var Pb = this.bodyB.pos.add(rotatedAnchorB);
+        if(this.visibility)
+            Draw.drawSpring(Pa, Pb, 10, this.width, this.colour); //straight line
     }
 }
