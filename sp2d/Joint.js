@@ -27,6 +27,9 @@ export class Joint {
         //draw or not
 
         this.colour = colour;
+
+        this.angleA=bodyA.angle;
+        this.angleB=bodyB.angle;
     }
 
     apply() {}

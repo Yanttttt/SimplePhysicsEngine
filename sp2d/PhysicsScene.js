@@ -325,3 +325,18 @@ export function drawContactPoint() {
         Draw.drawCircle(c.contactPoint, 0.007, "#FFFF00");
     }
 }
+
+export function drawAnchorPoint() {
+    for (let j of joints) {
+        
+        var rotatedAnchorA = j.anchorA.rotate(-j.angleA+j.bodyA.angle);
+        var rotatedAnchorB = j.anchorB.rotate(-j.angleB+j.bodyB.angle);
+
+        var Pa = j.bodyA.pos.add(rotatedAnchorA);
+        //Absolute coordinates of unconstrained entity
+        var Pb = j.bodyB.pos.add(rotatedAnchorB);
+
+        Draw.drawCircle(Pa, 0.007, "#3f3f3f");
+        Draw.drawCircle(Pb, 0.007, "#3f3f3f");
+    }
+}
