@@ -30,8 +30,22 @@ function addPendulum(pos)
 
     var length=0.5;
 
+    var stick= new Entity.Rectangle(
+        0.02,
+        0.2,
+        1,
+        0,
+        undefined,
+        pos.add(new Vector2(0,-length-0.1)),
+        new Vector2(0,0),
+        0,
+        0,
+        "#7f3f00"
+    );
+    PhysicsScene.addEntity(stick);
+
     var ball=new Entity.Circle(0.1, 1, 0, undefined,
-        pos.add(new Vector2(0,-length)),
+        pos.add(new Vector2(0,-length-0.2-0.05)),
         VectorMath2.zero(),
         0,
         0,
@@ -39,9 +53,9 @@ function addPendulum(pos)
     )
     var id=PhysicsScene.addEntity(ball);
 
-    var rope=new Joint.Spring(hinge, ball,
+    var rope=new Joint.Spring(hinge, stick,
         VectorMath2.zero(),
-        new Vector2(0.1,0),
+        new Vector2(0,0.1),
         0.05,
         2,
         0.01,
@@ -49,6 +63,23 @@ function addPendulum(pos)
         "#111111"
     );
     PhysicsScene.addJoint(rope);
+
+    var weld1=new Joint.Distance(stick, ball,
+        new Vector2(-0.1,0.2),
+        VectorMath2.zero(),
+        false,
+        "#111111"
+    );
+
+    var weld2=new Joint.Distance(stick, ball,
+        new Vector2(0.1,0.2),
+        VectorMath2.zero(),
+        false,
+        "#111111"
+    );
+    PhysicsScene.addJoint(weld1);
+    PhysicsScene.addJoint(weld2);
+    PhysicsScene.disableCollision(ball.id,stick.id);
     return id;
 }
 
@@ -56,16 +87,16 @@ function hangPendulum()
 {
     var mid=new Vector2(1,1.5);
     var plug=addPendulum(mid);
-    PhysicsScene.entities[plug].pos.addEqual(new Vector2(-1,-1));
+    PhysicsScene.entities[plug].vel.addEqual(new Vector2(-5,0));
 }
 
 function updateFrame()
 {
     //console.log(PhysicsScene.entities);
-    PhysicsScene.simulate(30);
+    PhysicsScene.simulate(50);
     PhysicsScene.draw();
-    PhysicsScene.drawVertex();
-    PhysicsScene.drawContactPoint();
+    //PhysicsScene.drawVertex();
+    //PhysicsScene.drawContactPoint();
     requestAnimationFrame(updateFrame);
 }
 

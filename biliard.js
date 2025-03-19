@@ -160,6 +160,24 @@ document.getElementById("frictionSlider").oninput = function () {
     }
 };
 
+// document.addEventListener("click", (event) => {
+//     var pos=new Vector2(event.clientX-10, event.clientY-10);
+
+//     var rect = new Entity.Rectangle(
+//         0.1, 0.1,
+//         0.1, 0.1,
+//         1,
+//         new Vector2(pos.x/Draw.scale, 
+//             (Draw.canvas.height-pos.y)/Draw.scale),// where the mouse is clicked in world
+//         new Vector2(0, 0),
+//         0,
+//         0,
+//         "#FF0000"
+//     );
+//     console.log("clicked!",pos.x/Draw.scale, (Draw.canvas.height-pos.y)/Draw.scale);
+//     PhysicsScene.addEntity(rect);
+// });
+
 //console.log('addBlock is defined:', typeof addBlock === 'function');
 
 function updateFrame() {

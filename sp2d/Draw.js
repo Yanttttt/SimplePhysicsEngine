@@ -20,12 +20,12 @@ export function init(canvasID, width=window.innerWidth - 20, height=window.inner
     scale = Math.min(canvas.width, canvas.height) / div;
 }
 
-function convertX(pos)
+export function convertX(pos)
 {
     return pos.x * scale;
 }
 
-function convertY(pos)
+export function convertY(pos)
 {
     return canvas.height - pos.y * scale;
 }

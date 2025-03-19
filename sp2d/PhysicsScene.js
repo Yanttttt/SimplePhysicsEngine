@@ -4,6 +4,8 @@ import * as Collision from "./Collision.js";
 import * as Joint from "./Joint.js";
 import { Vector2, VectorMath2 } from "./Vector2.js";
 
+var MAX_ENTITY=1e4;
+
 export var simWidth;
 export var simHeight;
 
@@ -21,6 +23,9 @@ export var collisions = [];
  * @type {Joint.Joint[]}
  */
 export var joints = [];
+
+var disableColl = [];
+// record if allowing collisions
 
 export var substep;
 
@@ -42,6 +47,13 @@ export function init(worldSize_ = null, gravity_ = new Vector2(0.0, -9.8), airRe
 
     if (worldSize == null) {
         worldSize = new Vector2(simWidth, simHeight);
+    }
+
+    for (let i = 0; i < MAX_ENTITY; i++) {
+        disableColl[i] = [];
+        for (let j = 0; j < MAX_ENTITY; j++) {
+            disableColl[i][j] = false;
+        }
     }
 
     console.log("Simulation width:", simWidth, "Simulation height:", simHeight);
@@ -69,7 +81,7 @@ export function addJoint(joint) {
     joint.id = joints.length;
     joints.push(joint);
     return joint.id;
-    // Passing by reference, id has been changed. 
+    // Passing by reference, id has been changed.
     // But it may make some convenience.
 }
 
@@ -98,6 +110,14 @@ export function setGravity(g) {
 
 export function setDt(d) {
     dt = d;
+}
+
+export function disableCollision(a,b)
+{
+    if(!a||!b)
+        return;
+    disableColl[a][b]=true;
+    disableColl[b][a]=true;
 }
 
 export function setFloorCollision(restitution = 0, friction = 0) {
@@ -275,6 +295,7 @@ export function simulate(substep_ = 1) {
 
         for (let i = 0; i < entities.length; i++) {
             for (let j = i + 1; j < entities.length; j++) {
+                if(disableColl[i][j]||disableColl[j][i]) continue;
                 var collision = Collision.detect(entities[i], entities[j]);
                 if (collision != null) {
                     //console.log(collision);

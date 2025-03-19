@@ -1,4 +1,4 @@
 # SimplePhysicsEngine
 
-The Individual Digital Solution of the SACE Year 12 Digital Tech.
+This is SACE Year 12 Digital Tech Individual Digital Solution.
  

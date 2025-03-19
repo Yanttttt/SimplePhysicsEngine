@@ -30,6 +30,8 @@ export class Joint {
 
         this.angleA=bodyA.angle;
         this.angleB=bodyB.angle;
+
+        this.c
     }
 
     apply() {}
@@ -96,7 +98,8 @@ export class Distance extends Joint {
 
     apply() {
         // a joint is actually a collision
-        var corrFactor = 0.3 / PhysicsScene.substep;
+        var corrFactor = 0.8;
+        // / PhysicsScene.substep;
 
         var a = this.bodyA;
         var b = this.bodyB;
@@ -111,7 +114,7 @@ export class Distance extends Joint {
         var diff = Pa.subtract(Pb);
         var currentLength = diff.length();
         var normal = diff.normalise();
-        var depth = currentLength - this.length;
+        var depth = (currentLength - this.length)*2;
 
         var e = Math.min(a.restitution,b.restitution);
         var r_ap = Pa.subtract(a.pos);
@@ -134,7 +137,7 @@ export class Distance extends Joint {
             denom += b.massInv + (r_bp_cross_n * r_bp_cross_n) * b.inertiaInv;
         }
 
-        var J = -(1 + e) * v_rel_n / denom;
+        var J = -2 * v_rel_n / denom;
         var impulse = normal.times(J);
 
         if (a.mass !== Infinity) {
