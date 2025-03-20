@@ -29,6 +29,7 @@ export function convertY(pos)
 {
     return canvas.height - pos.y * scale;
 }
+//convert the coordinate system of physics world to that of the canvas
 
 export function getRandomColour() {
     let r = Math.floor(Math.random() * 256).toString(16);

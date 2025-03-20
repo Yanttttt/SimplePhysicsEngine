@@ -258,6 +258,8 @@ export class Circle {
         this.friction=friction;
         if (!mass)
             this.mass = Math.PI * radius ** 2;
+        else
+            this.mass=mass;
         this.massInv = 1 / this.mass;
         this.pos = pos.clone();
         this.vel = vel.clone();

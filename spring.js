@@ -80,6 +80,7 @@ function addPendulum(pos)
     PhysicsScene.addJoint(weld1);
     PhysicsScene.addJoint(weld2);
     PhysicsScene.disableCollision(ball.id,stick.id);
+    //weld the ball to the stick
     return id;
 }
 

@@ -30,8 +30,6 @@ export class Joint {
 
         this.angleA=bodyA.angle;
         this.angleB=bodyB.angle;
-
-        this.c
     }
 
     apply() {}
@@ -92,7 +90,7 @@ export class Distance extends Joint {
         // this.length = anchorA.subtract(anchorB).length();
         this.id = null;
         this.length = anchorA.add(bodyA.pos).subtract(anchorB.add(bodyB.pos)).length();
-        this.angleA=bodyA.angle;
+        this.angleA=bodyA.angle;//record the initial angle offset
         this.angleB=bodyB.angle;
     }
 
@@ -194,7 +192,7 @@ export class Spring extends Joint {
         super(bodyA, bodyB, anchorA, anchorB, visibility, colour);
         this.id = null;
         this.width=width;
-        this.stiffness = stiffness; //aka spring constant
+        this.stiffness = stiffness; //aka spring constant. Newton / meter
         this.damping = damping; //you know what it is
         this.restLength = anchorA.add(bodyA.pos).subtract(anchorB.add(bodyB.pos)).length();
         //initial length
@@ -225,6 +223,9 @@ export class Spring extends Joint {
 
         // Hooke's law
         var springForce = normal.times(-this.stiffness * stretch*dt);
+        // integrating force * dt gives an impulse
+        // So here the value 1/dt is the number of terms of the Riemann sum
+        // So increase the substep can significantly increase the accuracy
 
         var r_ap = Pa.subtract(a.pos);
         var r_bp = Pb.subtract(b.pos);
