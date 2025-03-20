@@ -17,7 +17,7 @@ function buildChain2()
 {
     var numLinks=25;
     var linkLength=0.1;
-    var linkWidth=0.05;
+    var linkWidth=0.02;
 
     var startPos=new Vector2(0.3,1);
 
@@ -114,7 +114,7 @@ function buildChain1()
 {
     var numLinks=11;
     var linkLength=0.1;
-    var linkWidth=0.05;
+    var linkWidth=0.02;
 
     var startPos=new Vector2(1,1.7);
 
@@ -182,7 +182,7 @@ function buildChain1()
         prev = link;
     }
 
-    var endPos=new Vector2(2.14,1.9);
+    var endPos=new Vector2(2.14,1.8);
 
     var end=new Entity.Circle(0.2, 1, 0, undefined,
         endPos,
@@ -199,8 +199,8 @@ function buildChain1()
         end, 
         new Vector2(linkLength / 2,0), 
         new Vector2(0,0),
-        0.03,
-        7,
+        0.01,
+        5,
         0.01,
         true,
         "#3f3f3f"
@@ -210,10 +210,28 @@ function buildChain1()
     end.pos.addEqual(new Vector2(-0.22,0));
 }
 
+document.addEventListener("click", (event) => {
+    var pos=new Vector2(event.clientX-10, event.clientY-10);
+
+    var rect = new Entity.Rectangle(
+        0.05, 0.05,
+        0.1, 0.1,
+        undefined,
+        new Vector2(pos.x/Draw.scale, 
+            (Draw.canvas.height-pos.y)/Draw.scale),// where the mouse is clicked in world
+        new Vector2(0, 0),
+        0,
+        0,
+        "#FF0000"
+    );
+    console.log("clicked!",pos.x/Draw.scale, (Draw.canvas.height-pos.y)/Draw.scale);
+    PhysicsScene.addEntity(rect);
+});
+
 function updateFrame()
 {
     //console.log(PhysicsScene.entities);
-    PhysicsScene.simulate(30);
+    PhysicsScene.simulate(50);
     PhysicsScene.draw();
     //PhysicsScene.drawVertex();
     PhysicsScene.drawAnchorPoint();
