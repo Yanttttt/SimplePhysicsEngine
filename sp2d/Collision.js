@@ -141,7 +141,7 @@ export class Collision {
 }
 
 export function detect(entity1, entity2) {
-    if (entity1.type === "Circle" && entity2.type === "Circle") {
+    if ((entity1.type === "Circle"||entity1.type === "Particle") && (entity1.type === "Circle"||entity1.type === "Particle")) {
         return detectCircles(entity1, entity2);
     }
     if (
@@ -151,12 +151,12 @@ export function detect(entity1, entity2) {
         //console.log("polygons!");
         return detectPolygons(entity1, entity2);
     }
-    if ((entity1.type === "Circle" && 
+    if (((entity1.type === "Circle"||entity1.type === "Particle") && 
         (entity2.type === "Rectangle" || entity2.type === "Polygon"))) {
         return detectCirclePolygon(entity1, entity2);
     }
     if ((entity1.type === "Rectangle" || entity1.type === "Polygon") && 
-        entity2.type === "Circle") {
+    (entity2.type === "Circle"||entity2.type === "Particle")) {
         return detectCirclePolygon(entity2, entity1);
     }
 }

@@ -308,3 +308,71 @@ export class Circle {
         Draw.drawCircle(this.pos,this.radius,this.colour);
     }
 }
+
+export class Particle {
+    constructor(
+        radius,
+        restitution = 0,
+        friction=0,
+        mass = null,
+        pos = VectorMath2.zero(),
+        vel = VectorMath2.zero(),
+        angle = 0,
+        angularVel = 0,
+        colour = "#FF0000"
+    ) {
+        this.id = null;
+        this.radius = radius
+        this.restitution = restitution;
+        this.friction=friction;
+        if (!mass)
+            this.mass = Math.PI * radius ** 2;
+        else
+            this.mass=mass;
+        this.massInv = 1 / this.mass;
+        this.pos = pos.clone();
+        this.vel = vel.clone();
+        this.angle = 0;
+        this.angularVel = 0;
+
+        this.inertia = this.mass * (this.radius * this.radius) / 2;
+        this.inertiaInv = 1 / this.inertia;
+        
+        this.colour = colour;
+        this.type = "Particle";
+    }
+
+    setStatic() {
+        this.mass = Infinity;
+        this.massInv = 0;
+        this.vel = VectorMath2.zero();
+    }
+
+    /**
+     * @param {any} dt
+     * @param {Vector2} gravity
+     */
+    simulate(dt, gravity) {
+        //var kr = 0.01; //rolling friction canstant
+        
+        this.vel.addEqual(gravity.times(dt));
+        if (this.mass === Infinity)
+        {
+            this.vel = VectorMath2.zero();
+            //console.log(this.vel);
+        }
+
+        this.pos.addEqual(this.vel.times(dt));
+        this.angularVel = 0;//particle doesn't rotate
+
+        //this.angularVel *= (1 - kr);
+
+        // if (this.vel.length() < eps)
+        //     this.vel = VectorMath2.zero();
+    }
+
+    draw()
+    {
+        Draw.drawCircle(this.pos,this.radius,this.colour);
+    }
+}
