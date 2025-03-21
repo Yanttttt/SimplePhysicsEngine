@@ -141,7 +141,7 @@ export class Collision {
 }
 
 export function detect(entity1, entity2) {
-    if ((entity1.type === "Circle"||entity1.type === "Particle") && (entity1.type === "Circle"||entity1.type === "Particle")) {
+    if ((entity1.type === "Circle"||entity1.type === "Particle") && (entity2.type === "Circle"||entity2.type === "Particle")) {
         return detectCircles(entity1, entity2);
     }
     if (
